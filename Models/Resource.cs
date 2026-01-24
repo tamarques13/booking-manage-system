@@ -1,14 +1,14 @@
 namespace BookingSystem.Models
 {
-    public enum ResourceType { Bedroom, ConferenceRoom, Office, MeetingRoom }
+    public enum ResourceType { Office, ConferenceRoom, MeetingRoom }
     public enum ResourceStatus { Available, Unavailable }
     public class Resource
     {
-        public required Guid Id { get; set; }
+        public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public int Capacity { get; private set; }
-        public required ResourceType Type { get; set; }
-        public required ResourceStatus Status { get; set; }
+        public ResourceType Type { get; set; }
+        public ResourceStatus Status { get; set; }
 
         public Resource(string name, int capacity, ResourceType type)
         {
