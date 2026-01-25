@@ -15,6 +15,7 @@ internal sealed class GlobalExceptionHandlerMiddleware(RequestDelegate next, ILo
 
             var statusCode = ex switch
             {
+                ArgumentException => StatusCodes.Status400BadRequest,
                 InvalidOperationException => StatusCodes.Status400BadRequest,
                 UnauthorizedAccessException => StatusCodes.Status401Unauthorized,
                 KeyNotFoundException => StatusCodes.Status404NotFound,

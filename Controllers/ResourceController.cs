@@ -33,7 +33,7 @@ namespace BookingSystem.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllResources()
+        public async Task<IActionResult> GetResources()
         {
             var resources = await _resourceService.GetResourcesAsync();
             return Ok(resources);

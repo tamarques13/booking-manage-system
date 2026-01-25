@@ -2,6 +2,7 @@ using BookingSystem.Models;
 using BookingSystem.Services.Interfaces;
 using BookingSystem.Repositories.Interfaces;
 using BookingSystem.DTOs;
+using BookingSystem.Helpers;
 
 namespace BookingSystem.Services
 {
@@ -12,18 +13,10 @@ namespace BookingSystem.Services
         public async Task<ResourceDto> CreateResourceAsync(CreateResourceDto dto)
         {
             var resource = new Resource(dto.Name, dto.Capacity, Enum.Parse<ResourceType>(dto.Type));
+
             await _resourceRepository.AddAsync(resource);
 
-            var resourceDto = new ResourceDto
-            {
-                Id = resource.Id,
-                Name = resource.Name,
-                Capacity = resource.Capacity,
-                Type = resource.Type.ToString(),
-                Status = resource.Status.ToString()
-            };
-
-            return resourceDto;
+            return resource.ToResourceDto();
         }
 
         public async Task<ResourceDto> BookResourceAsync(Guid resourceId)
@@ -34,16 +27,7 @@ namespace BookingSystem.Services
 
             await _resourceRepository.UpdateAsync(resource);
 
-            var resourceDto = new ResourceDto
-            {
-                Id = resource.Id,
-                Name = resource.Name,
-                Capacity = resource.Capacity,
-                Type = resource.Type.ToString(),
-                Status = resource.Status.ToString()
-            };
-
-            return resourceDto;
+            return resource.ToResourceDto();
         }
 
         public async Task<ResourceDto> ReleaseResourceAsync(Guid resourceId)
@@ -54,16 +38,7 @@ namespace BookingSystem.Services
 
             await _resourceRepository.UpdateAsync(resource);
 
-            var resourceDto = new ResourceDto
-            {
-                Id = resource.Id,
-                Name = resource.Name,
-                Capacity = resource.Capacity,
-                Type = resource.Type.ToString(),
-                Status = resource.Status.ToString()
-            };
-
-            return resourceDto;
+            return resource.ToResourceDto();
         }
         public async Task<List<ResourceDto>> GetResourcesAsync()
         {
@@ -83,16 +58,7 @@ namespace BookingSystem.Services
         {
             var resource = await _resourceRepository.GetByIdAsync(resourceId);
 
-            var resourceDto = new ResourceDto
-            {
-                Id = resource.Id,
-                Name = resource.Name,
-                Capacity = resource.Capacity,
-                Type = resource.Type.ToString(),
-                Status = resource.Status.ToString()
-            };
-
-            return resourceDto;
+           return resource.ToResourceDto();
         }
 
         public async Task DeleteResourceAsync(Guid resourceId)
