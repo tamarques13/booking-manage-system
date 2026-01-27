@@ -20,54 +20,22 @@ namespace BookingSystem.Services
             return await reservation.ToReservationDtoAsync(_resourceRepository);
         }
 
-        public async Task<ReservationDto> ConfirmReservationAsync(Guid reservationId)
-        {
-            var reservation = await _reservationRepository.GetByIdAsync(reservationId);
-
-            reservation.ConfirmReservation();
-
-            await _reservationRepository.UpdateAsync(reservation);
-
-            return await reservation.ToReservationDtoAsync(_resourceRepository);
-        }
-
         public async Task<ReservationDto> CancelReservationAsync(Guid reservationId)
         {
             var reservation = await _reservationRepository.GetByIdAsync(reservationId);
 
             reservation.CancelReservation();
-            await _reservationRepository.UpdateAsync(reservation);
-
-            return await reservation.ToReservationDtoAsync(_resourceRepository);
-        }
-
-        public async Task<ReservationDto> CompleteReservationAsync(Guid reservationId)
-        {
-            var reservation = await _reservationRepository.GetByIdAsync(reservationId);
-
-            reservation.CompleteReservation();
 
             await _reservationRepository.UpdateAsync(reservation);
 
             return await reservation.ToReservationDtoAsync(_resourceRepository);
         }
 
-        public async Task<ReservationDto> ExpireReservationAsync(Guid reservationId)
+        public async Task<ReservationDto> UpdateDateReservationAsync(Guid reservationId, DateTime newStartDate, DateTime newEndDate)
         {
             var reservation = await _reservationRepository.GetByIdAsync(reservationId);
 
-            reservation.ExpireReservation();
-
-            await _reservationRepository.UpdateAsync(reservation);
-
-            return await reservation.ToReservationDtoAsync(_resourceRepository);
-        }
-
-        public async Task<ReservationDto> ExtendReservationAsync(Guid reservationId, DateTime newEndDate)
-        {
-            var reservation = await _reservationRepository.GetByIdAsync(reservationId);
-
-            reservation.ExtendReservation(newEndDate);
+            reservation.UpdateDateReservation(newStartDate, newEndDate);
 
             await _reservationRepository.UpdateAsync(reservation);
 
@@ -85,31 +53,15 @@ namespace BookingSystem.Services
             return await reservation.ToReservationDtoAsync(_resourceRepository);
         }
 
-        public async Task<List<ReservationDto>> GetReservationsAsync()
+        public async Task<List<ReservationDto>> GetReservationsAsync(Guid? resourceId)
         {
-            var reservations = await _reservationRepository.GetAllAsync();
+            var reservations = await _reservationRepository.GetAllAsync(resourceId);
 
             var reservationDtos = new List<ReservationDto>();
 
             foreach (var reservation in reservations)
             {
-                var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
-
-                reservationDtos.Add(new ReservationDto
-                {
-                    Id = reservation.Id,
-                    StartDate = reservation.StartDate,
-                    EndDate = reservation.EndDate,
-                    NumberOfPeople = reservation.NumberOfPeople,
-                    Status = reservation.Status.ToString(),
-                    Resource = new ReservationResourceDto
-                    {
-                        Id = resource.Id,
-                        Name = resource.Name,
-                        Type = resource.Type.ToString(),
-                        Status = resource.Status.ToString()
-                    }
-                });
+                await reservation.ToReservationDtoAsync(_resourceRepository, isGetAll: true, reservationDtos: reservationDtos);
             }
 
             return reservationDtos;

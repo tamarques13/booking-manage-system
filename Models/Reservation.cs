@@ -61,11 +61,14 @@ namespace BookingSystem.Models
             Status = ReservationStatus.Expired;
         }
 
-        public void ExtendReservation(DateTime newEndDate)
+        public void UpdateDateReservation(DateTime newStartDate, DateTime newEndDate)
         {
-            if (newEndDate <= EndDate) throw new ArgumentException("New end date must be after the current end date.");
+            if (newStartDate < DateTime.Now) throw new ArgumentException("StartDate cannot be in the past");
+            if (newEndDate <= newStartDate) throw new ArgumentException("EndDate must be after StartDate");
+
             if (Status != ReservationStatus.Pending) throw new InvalidOperationException("Only pending reservations can be extended.");
 
+            StartDate = newStartDate;
             EndDate = newEndDate;
         }
 

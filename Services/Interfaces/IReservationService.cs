@@ -6,13 +6,10 @@ namespace BookingSystem.Services.Interfaces
     public interface IReservationService
     {
         Task<ReservationDto> CreateReservationAsync(CreateReservationDto dto);
-        Task<ReservationDto> ConfirmReservationAsync(Guid reservationId);
         Task<ReservationDto> CancelReservationAsync(Guid reservationId);
-        Task<ReservationDto> CompleteReservationAsync(Guid reservationId);
-        Task<ReservationDto> ExpireReservationAsync(Guid reservationId);
-        Task<ReservationDto> ExtendReservationAsync(Guid reservationId, DateTime newEndDate);
+        Task<ReservationDto> UpdateDateReservationAsync(Guid reservationId, DateTime newStartDate, DateTime newEndDate);
         Task<ReservationDto> ChangeNumberOfPeopleAsync(Guid reservationId, int newNumberOfPeople);
-        Task<List<ReservationDto>> GetReservationsAsync();
+        Task<List<ReservationDto>> GetReservationsAsync(Guid? resourceId);
         Task<ReservationDto> GetReservationByIdAsync(Guid reservationId);
         Task DeleteReservationAsync(Guid reservationId);
     }

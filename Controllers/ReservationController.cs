@@ -18,13 +18,6 @@ namespace BookingSystem.Controllers
             return Ok(reservationDto);
         }
 
-        [HttpPut("{id}/confirm")]
-        public async Task<IActionResult> ConfirmReservation(Guid id)
-        {
-            var reservationDto = await _reservationService.ConfirmReservationAsync(id);
-            return Ok(reservationDto);
-        }
-
         [HttpPut("{id}/cancel")]
         public async Task<IActionResult> CancelReservation(Guid id)
         {
@@ -32,28 +25,14 @@ namespace BookingSystem.Controllers
             return Ok(reservationDto);
         }
 
-        [HttpPut("{id}/complete")]
-        public async Task<IActionResult> CompleteReservation(Guid id)
+        [HttpPut("{id}/date")]
+        public async Task<IActionResult> ExtendReservation(Guid id, DateTime newStartDate, DateTime newEndDate)
         {
-            var reservationDto = await _reservationService.CompleteReservationAsync(id);
+            var reservationDto = await _reservationService.UpdateDateReservationAsync(id, newStartDate, newEndDate);
             return Ok(reservationDto);
         }
 
-        [HttpPut("{id}/expire")]
-        public async Task<IActionResult> ExpireReservation(Guid id)
-        {
-            var reservationDto = await _reservationService.ExpireReservationAsync(id);
-            return Ok(reservationDto);
-        }
-
-        [HttpPut("{id}/extend")]
-        public async Task<IActionResult> ExtendReservation(Guid id, DateTime newEndDate)
-        {
-            var reservationDto = await _reservationService.ExtendReservationAsync(id, newEndDate);
-            return Ok(reservationDto);
-        }
-
-        [HttpPut("{id}/change-people")]
+        [HttpPut("{id}/guest")]
         public async Task<IActionResult> ChangeNumberOfPeople(Guid id, int newNumberOfPeople)
         {
             var reservationDto = await _reservationService.ChangeNumberOfPeopleAsync(id, newNumberOfPeople);
@@ -61,9 +40,9 @@ namespace BookingSystem.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetReservations()
+        public async Task<IActionResult> GetReservations([FromQuery] Guid? ResourceId)
         {
-            var reservations = await _reservationService.GetReservationsAsync();
+            var reservations = await _reservationService.GetReservationsAsync(ResourceId);
             return Ok(reservations);
         }
 

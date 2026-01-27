@@ -18,20 +18,6 @@ namespace BookingSystem.Controllers
             return Ok(resourceDto);
         }
 
-        [HttpPut("{id}/book")]
-        public async Task<IActionResult> BookResource(Guid id)
-        {
-            var resourceDto = await _resourceService.BookResourceAsync(id);
-            return Ok(resourceDto);
-        }
-
-        [HttpPut("{id}/release")]
-        public async Task<IActionResult> ReleaseResource(Guid id)
-        {
-            var resourceDto = await _resourceService.ReleaseResourceAsync(id);
-            return Ok(resourceDto);
-        }
-
         [HttpGet]
         public async Task<IActionResult> GetResources()
         {

@@ -19,27 +19,6 @@ namespace BookingSystem.Services
             return resource.ToResourceDto();
         }
 
-        public async Task<ResourceDto> BookResourceAsync(Guid resourceId)
-        {
-            var resource = await _resourceRepository.GetByIdAsync(resourceId);
-
-            resource.BookResource();
-
-            await _resourceRepository.UpdateAsync(resource);
-
-            return resource.ToResourceDto();
-        }
-
-        public async Task<ResourceDto> ReleaseResourceAsync(Guid resourceId)
-        {
-            var resource = await _resourceRepository.GetByIdAsync(resourceId);
-
-            resource.ReleaseResource();
-
-            await _resourceRepository.UpdateAsync(resource);
-
-            return resource.ToResourceDto();
-        }
         public async Task<List<ResourceDto>> GetResourcesAsync()
         {
             var resources = await _resourceRepository.GetAllAsync();
@@ -58,7 +37,7 @@ namespace BookingSystem.Services
         {
             var resource = await _resourceRepository.GetByIdAsync(resourceId);
 
-           return resource.ToResourceDto();
+            return resource.ToResourceDto();
         }
 
         public async Task DeleteResourceAsync(Guid resourceId)

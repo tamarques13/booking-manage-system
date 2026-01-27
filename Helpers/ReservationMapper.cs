@@ -7,11 +7,11 @@ namespace BookingSystem.Helpers
 {
     public static class ReservationMapper
     {
-        public static async Task<ReservationDto> ToReservationDtoAsync(this Reservation reservation, IResourceRepository resourceRepository)
+        public static async Task<ReservationDto> ToReservationDtoAsync(this Reservation reservation, IResourceRepository resourceRepository, bool isGetAll = false, List<ReservationDto>? reservationDtos = null)
         {
             var resource = await resourceRepository.GetByIdAsync(reservation.ResourceId);
-            
-            return new ReservationDto
+
+            var reservationDto = new ReservationDto
             {
                 Id = reservation.Id,
                 StartDate = reservation.StartDate,
@@ -26,6 +26,16 @@ namespace BookingSystem.Helpers
                     Status = resource.Status.ToString()
                 }
             };
+
+            if (isGetAll)
+            {
+                if (reservationDtos == null) throw new ArgumentNullException(nameof(reservationDtos), "You must provide a list when executing GetAll.");
+
+                reservationDtos.Add(reservationDto);
+                return null!;
+            }
+
+            return reservationDto;
         }
     }
 }
