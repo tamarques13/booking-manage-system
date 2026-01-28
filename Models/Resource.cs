@@ -6,7 +6,7 @@ namespace BookingSystem.Models
     {
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
-        public int Capacity { get; private set; }
+        public int Capacity { get; set; }
         public ResourceType Type { get; set; }
         public ResourceStatus Status { get; set; }
 
@@ -19,6 +19,19 @@ namespace BookingSystem.Models
             Capacity = capacity;
             Type = type;
             Status = ResourceStatus.Available;
+        }
+
+        public void Update(string name, int capacity, ResourceType type)
+        {
+            if (!Enum.IsDefined(typeof(ResourceType), type)) throw new ArgumentException($"Invalid resource type: {type}");
+
+            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Name cannot be empty.");
+
+            if (capacity <= 0) throw new ArgumentException("Capacity must be greater than zero.");
+
+            Name = name;
+            Capacity = capacity;
+            Type = type;
         }
 
         public void BookResource()

@@ -19,6 +19,41 @@ namespace BookingSystem.Services
             return resource.ToResourceDto();
         }
 
+        public async Task<ResourceDto> UpdateResourceAsync(Guid resourceId, CreateResourceDto dto)
+        {
+            var resource = await _resourceRepository.GetByIdAsync(resourceId);
+
+            ArgumentNullException.ThrowIfNull(dto);
+
+            resource.Update(dto.Name, dto.Capacity, Enum.Parse<ResourceType>(dto.Type));
+
+            await _resourceRepository.UpdateAsync(resource);
+
+            return resource.ToResourceDto();
+        }
+
+        public async Task<ResourceDto> ActivateResourceAsync(Guid resourceId)
+        {
+            var resource = await _resourceRepository.GetByIdAsync(resourceId);
+
+            resource.BookResource();
+
+            await _resourceRepository.UpdateAsync(resource);
+
+            return resource.ToResourceDto();
+        }
+
+        public async Task<ResourceDto> DeactivateResourceAsync(Guid resourceId)
+        {
+            var resource = await _resourceRepository.GetByIdAsync(resourceId);
+
+            resource.ReleaseResource();
+
+            await _resourceRepository.UpdateAsync(resource);
+
+            return resource.ToResourceDto();
+        }
+
         public async Task<List<ResourceDto>> GetResourcesAsync()
         {
             var resources = await _resourceRepository.GetAllAsync();
