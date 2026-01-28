@@ -7,6 +7,8 @@ public class ResourceDto
     public int Capacity { get; set; }
     public string Type { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
+    public TimeOnly OpeningTime { get; set; }
+    public TimeOnly ClosingTime { get; set; }
 }
 
 public class CreateResourceDto
@@ -14,6 +16,8 @@ public class CreateResourceDto
     public string Name { get; set; } = string.Empty;
     public int Capacity { get; set; }
     public string Type { get; set; } = string.Empty;
+    public TimeOnly OpeningTime { get; set; }
+    public TimeOnly ClosingTime { get; set; }
 }
 
 public class ReservationResourceDto
@@ -21,5 +25,6 @@ public class ReservationResourceDto
     public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty;
-    public string Status { get; set; } = string.Empty;
+    public TimeOnly OpeningTime { get; set; }
+    public TimeOnly ClosingTime { get; set; }
 }

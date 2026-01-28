@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace BookingSystem.Helpers
 {
-    public static class ReservationMapper
+    public static class ModelsDtoMapper
     {
         public static async Task<ReservationDto> ToReservationDtoAsync(this Reservation reservation, IResourceRepository resourceRepository, bool isGetAll = false, List<ReservationDto>? reservationDtos = null)
         {
@@ -23,7 +23,8 @@ namespace BookingSystem.Helpers
                     Id = resource.Id,
                     Name = resource.Name,
                     Type = resource.Type.ToString(),
-                    Status = resource.Status.ToString()
+                    OpeningTime = resource.OpeningTime,
+                    ClosingTime = resource.ClosingTime,
                 }
             };
 
@@ -36,6 +37,20 @@ namespace BookingSystem.Helpers
             }
 
             return reservationDto;
+        }
+
+        public static ResourceDto ToResourceDto(this Resource resource)
+        {
+            return new ResourceDto
+            {
+                Id = resource.Id,
+                Name = resource.Name,
+                Capacity = resource.Capacity,
+                Type = resource.Type.ToString(),
+                Status = resource.Status.ToString(),
+                OpeningTime = resource.OpeningTime,
+                ClosingTime = resource.ClosingTime
+            };
         }
     }
 }

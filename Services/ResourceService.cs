@@ -12,7 +12,7 @@ namespace BookingSystem.Services
 
         public async Task<ResourceDto> CreateResourceAsync(CreateResourceDto dto)
         {
-            var resource = new Resource(dto.Name, dto.Capacity, Enum.Parse<ResourceType>(dto.Type));
+            var resource = new Resource(dto.Name, dto.Capacity, Enum.Parse<ResourceType>(dto.Type), dto.OpeningTime, dto.ClosingTime);
 
             await _resourceRepository.AddAsync(resource);
 
@@ -25,7 +25,7 @@ namespace BookingSystem.Services
 
             ArgumentNullException.ThrowIfNull(dto);
 
-            resource.Update(dto.Name, dto.Capacity, Enum.Parse<ResourceType>(dto.Type));
+            resource.Update(dto.Name, dto.Capacity, Enum.Parse<ResourceType>(dto.Type), dto.OpeningTime, dto.ClosingTime);
 
             await _resourceRepository.UpdateAsync(resource);
 
