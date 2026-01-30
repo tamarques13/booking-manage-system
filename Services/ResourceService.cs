@@ -12,7 +12,7 @@ namespace BookingSystem.Services
 
         public async Task<ResourceDto> CreateResourceAsync(CreateResourceDto dto)
         {
-            var resource = new Resource(dto.Name, dto.Capacity, Enum.Parse<ResourceType>(dto.Type), dto.OpeningTime, dto.ClosingTime);
+            var resource = new Resource(dto.Name, dto.Capacity, Enum.Parse<ResourceType>(dto.Type), dto.OpeningTime, dto.ClosingTime, dto.Weekends);
 
             await _resourceRepository.AddAsync(resource);
 
@@ -36,7 +36,7 @@ namespace BookingSystem.Services
         {
             var resource = await _resourceRepository.GetByIdAsync(resourceId);
 
-            resource.BookResource();
+            resource.ActivateResource();
 
             await _resourceRepository.UpdateAsync(resource);
 
@@ -47,7 +47,18 @@ namespace BookingSystem.Services
         {
             var resource = await _resourceRepository.GetByIdAsync(resourceId);
 
-            resource.ReleaseResource();
+            resource.DeactivateResource();
+
+            await _resourceRepository.UpdateAsync(resource);
+
+            return resource.ToResourceDto();
+        }
+
+        public async Task<ResourceDto> UpdateWeekendAsync(Guid resourceId)
+        {
+            var resource = await _resourceRepository.GetByIdAsync(resourceId);
+
+            resource.UpdateWeekend();
 
             await _resourceRepository.UpdateAsync(resource);
 
@@ -58,14 +69,9 @@ namespace BookingSystem.Services
         {
             var resources = await _resourceRepository.GetAllAsync();
 
-            return resources.Select(resource => new ResourceDto
-            {
-                Id = resource.Id,
-                Name = resource.Name,
-                Capacity = resource.Capacity,
-                Type = resource.Type.ToString(),
-                Status = resource.Status.ToString()
-            }).ToList();
+            var ResourcesList = resources.Select(resource => resource.ToResourceDto()).ToList();
+
+            return ResourcesList;
         }
 
         public async Task<ResourceDto> GetResourceByIdAsync(Guid resourceId)

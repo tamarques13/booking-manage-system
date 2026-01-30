@@ -28,14 +28,21 @@ namespace BookingSystem.Controllers
         [HttpPatch("{id}/date")]
         public async Task<IActionResult> ExtendReservation(Guid id, DateTime newStartDate, DateTime newEndDate)
         {
-            var reservationDto = await _reservationService.UpdateDateReservationAsync(id, newStartDate, newEndDate);
+            var reservationDto = await _reservationService.UpdateDateAsync(id, newStartDate, newEndDate);
             return Ok(reservationDto);
         }
 
         [HttpPatch("{id}/guest")]
         public async Task<IActionResult> ChangeNumberOfPeople(Guid id, int newNumberOfPeople)
         {
-            var reservationDto = await _reservationService.ChangeNumberOfPeopleAsync(id, newNumberOfPeople);
+            var reservationDto = await _reservationService.UpdateNumberOfPeopleAsync(id, newNumberOfPeople);
+            return Ok(reservationDto);
+        }
+
+        [HttpPatch("{id}/resource")]
+        public async Task<IActionResult> UpdateResource(Guid id, Guid resourceId)
+        {
+            var reservationDto = await _reservationService.UpdateResourceAsync(id, resourceId);
             return Ok(reservationDto);
         }
 

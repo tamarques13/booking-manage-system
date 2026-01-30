@@ -12,7 +12,7 @@ namespace BookingSystem.Models
         public ReservationStatus Status { get; set; }
         public Guid ResourceId { get; set; }
 
-        public static Reservation Create(DateTime startDate, DateTime endDate, int numberOfPeople, Guid resourceId)
+        public Reservation(DateTime startDate, DateTime endDate, int numberOfPeople, Guid resourceId)
         {
             if (endDate <= startDate) throw new ArgumentException("EndDate must be after StartDate");
 
@@ -20,15 +20,13 @@ namespace BookingSystem.Models
 
             if (numberOfPeople <= 0) throw new ArgumentException("NumberOfPeople must be greater than zero");
 
-            return new Reservation
-            {
-                Id = Guid.NewGuid(),
-                Status = ReservationStatus.Pending,
-                StartDate = startDate,
-                EndDate = endDate,
-                NumberOfPeople = numberOfPeople,
-                ResourceId = resourceId,
-            };
+            Id = Guid.NewGuid();
+            Status = ReservationStatus.Pending;
+            StartDate = startDate;
+            EndDate = endDate;
+            NumberOfPeople = numberOfPeople;
+            ResourceId = resourceId;
+
         }
 
         public void ConfirmReservation()
@@ -78,6 +76,11 @@ namespace BookingSystem.Models
             if (Status != ReservationStatus.Pending) throw new InvalidOperationException("Only pending reservations can change the number of people.");
 
             NumberOfPeople = newNumberOfPeople;
+        }
+
+        public void UpdateResource(Guid resourceId)
+        {
+            ResourceId = resourceId;
         }
     }
 }

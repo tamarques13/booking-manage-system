@@ -7,10 +7,8 @@ namespace BookingSystem.Helpers
 {
     public static class ModelsDtoMapper
     {
-        public static async Task<ReservationDto> ToReservationDtoAsync(this Reservation reservation, IResourceRepository resourceRepository, bool isGetAll = false, List<ReservationDto>? reservationDtos = null)
+        public static ReservationDto ToReservationDto(this Reservation reservation, Resource resource, bool isGetAll = false, List<ReservationDto>? reservationDtos = null)
         {
-            var resource = await resourceRepository.GetByIdAsync(reservation.ResourceId);
-
             var reservationDto = new ReservationDto
             {
                 Id = reservation.Id,
@@ -20,11 +18,12 @@ namespace BookingSystem.Helpers
                 Status = reservation.Status.ToString(),
                 Resource = new ReservationResourceDto
                 {
-                    Id = resource.Id,
+                    ResourceId = resource.Id,
                     Name = resource.Name,
                     Type = resource.Type.ToString(),
                     OpeningTime = resource.OpeningTime,
                     ClosingTime = resource.ClosingTime,
+                    Weekends = resource.Weekends,
                 }
             };
 
@@ -49,7 +48,8 @@ namespace BookingSystem.Helpers
                 Type = resource.Type.ToString(),
                 Status = resource.Status.ToString(),
                 OpeningTime = resource.OpeningTime,
-                ClosingTime = resource.ClosingTime
+                ClosingTime = resource.ClosingTime,
+                Weekends = resource.Weekends,
             };
         }
     }

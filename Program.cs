@@ -27,8 +27,9 @@ builder.Services.AddCors(options => {
 
 // Add Repository and Service
 builder.Services.AddScoped<IResourceRepository, ResourceRepository>();
-builder.Services.AddScoped<IResourceService, ResourceService>();
 builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
+
+builder.Services.AddScoped<IResourceService, ResourceService>();
 builder.Services.AddScoped<IReservationService, ReservationService>();
 
 // Add services to the container.

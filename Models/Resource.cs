@@ -11,8 +11,9 @@ namespace BookingSystem.Models
         public TimeOnly ClosingTime { get; set; }
         public ResourceType Type { get; set; }
         public ResourceStatus Status { get; set; }
+        public bool Weekends { get; set; }
 
-        public Resource(string name, int capacity, ResourceType type, TimeOnly openingTime, TimeOnly closingTime)
+        public Resource(string name, int capacity, ResourceType type, TimeOnly openingTime, TimeOnly closingTime, bool weekends)
         {
             if (Status != ResourceStatus.Available) throw new InvalidOperationException("Resource is not available for reservation.");
 
@@ -23,6 +24,7 @@ namespace BookingSystem.Models
             Capacity = capacity;
             Type = type;
             Status = ResourceStatus.Available;
+            Weekends = weekends;
         }
 
         public void Update(string name, int capacity, ResourceType type, TimeOnly openingTime, TimeOnly closingTime)
@@ -40,18 +42,23 @@ namespace BookingSystem.Models
             Type = type;
         }
 
-        public void BookResource()
+        public void ActivateResource()
+        {
+            if (Status == ResourceStatus.Available) throw new InvalidOperationException("Resource is already available.");
+
+            Status = ResourceStatus.Available;
+        }
+
+        public void DeactivateResource()
         {
             if (Status == ResourceStatus.Unavailable) throw new InvalidOperationException("Resource is already booked.");
 
             Status = ResourceStatus.Unavailable;
         }
 
-        public void ReleaseResource()
+        public void UpdateWeekend()
         {
-            if (Status == ResourceStatus.Available) throw new InvalidOperationException("Resource is already available.");
-
-            Status = ResourceStatus.Available;
+            Weekends = !Weekends;
         }
     }
 }

@@ -39,6 +39,13 @@ namespace BookingSystem.Controllers
             return Ok(resourceDto);
         }
 
+        [HttpPatch("{id}/weekends")]
+        public async Task<IActionResult> UpdateWeekends(Guid id)
+        {
+            var resourceDto = await _resourceService.UpdateWeekendAsync(id);
+            return Ok(resourceDto);
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetResources()
         {

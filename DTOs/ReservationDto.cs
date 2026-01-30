@@ -12,8 +12,8 @@ public class ReservationDto
 
 public class CreateReservationDto
 {
+    public int NumberOfPeople { get; set; }
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
-    public int NumberOfPeople { get; set; }
     public Guid ResourceId { get; set; }
 }
