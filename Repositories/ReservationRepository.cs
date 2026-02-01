@@ -28,12 +28,16 @@ namespace BookingSystem.Repositories
             return await _context.Reservations.FindAsync(reservationId) ?? throw new KeyNotFoundException($"Reservation with Id {reservationId} not found.");
         }
 
-        public async Task<List<Reservation>> GetAllAsync(Guid? resourceId)
+        public async Task<List<Reservation>> GetAllAsync(Guid? resourceId, DateTime? startTime, DateTime? endTime)
 
         {
             IQueryable<Reservation> query = _context.Reservations;
 
             if (resourceId.HasValue) query = query.Where(x => x.ResourceId == resourceId.Value);
+
+            if (endTime.HasValue) query = query.Where(x => x.StartDate <= endTime.Value);
+
+            if (startTime.HasValue) query = query.Where(x => x.EndDate >= startTime.Value);
 
             return await query.ToListAsync();
         }

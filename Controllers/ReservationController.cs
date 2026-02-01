@@ -47,9 +47,9 @@ namespace BookingSystem.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetReservations([FromQuery] Guid? ResourceId)
+        public async Task<IActionResult> GetReservations(Guid? ResourceId, DateTime? StartTime, DateTime? EndTime)
         {
-            var reservations = await _reservationService.GetReservationsAsync(ResourceId);
+            var reservations = await _reservationService.GetReservationsAsync(ResourceId, StartTime, EndTime);
             return Ok(reservations);
         }
 

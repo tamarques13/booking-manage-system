@@ -7,7 +7,7 @@ namespace BookingSystem.Repositories.Interfaces
         Task AddAsync(Reservation reservation);
         Task UpdateAsync(Reservation reservation);
         Task<Reservation> GetByIdAsync(Guid reservationId);
-        Task<List<Reservation>> GetAllAsync(Guid? resourceId);
+        Task<List<Reservation>> GetAllAsync(Guid? resourceId, DateTime? startTime, DateTime? endTime);
         Task DeleteAsync(Reservation reservation);
     }
 }

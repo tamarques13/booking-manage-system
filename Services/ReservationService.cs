@@ -17,7 +17,9 @@ namespace BookingSystem.Services
 
             var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
 
-            ValidateCreateReservation(reservation, resource);
+            var reservations = await _reservationRepository.GetAllAsync(resource.Id, dto.StartDate, dto.EndDate);
+
+            ValidateCreateReservation(reservation, resource, reservations);
 
             await _reservationRepository.AddAsync(reservation);
 
@@ -79,9 +81,9 @@ namespace BookingSystem.Services
             return reservation.ToReservationDto(resource);
         }
 
-        public async Task<List<ReservationDto>> GetReservationsAsync(Guid? resourceId)
+        public async Task<List<ReservationDto>> GetReservationsAsync(Guid? resourceId, DateTime? startTime, DateTime? endtime)
         {
-            var reservations = await _reservationRepository.GetAllAsync(resourceId);
+            var reservations = await _reservationRepository.GetAllAsync(resourceId, startTime, endtime);
 
             var reservationDtos = new List<ReservationDto>();
 
@@ -111,15 +113,35 @@ namespace BookingSystem.Services
             await _reservationRepository.DeleteAsync(reservation);
         }
 
-        private static void ValidateCreateReservation(Reservation reservation, Resource resource)
+        private static void ValidateCreateReservation(Reservation reservation, Resource resource, List<Reservation> reservations)
         {
+            int current = 0;
+            int max = 0;
+            var allReservations  = reservations.Append(reservation);
+
             if (resource.Status == ResourceStatus.Unavailable) throw new InvalidOperationException("Resource is Unavailable");
 
-            if (!resource.Weekends && (reservation.StartDate.DayOfWeek == DayOfWeek.Saturday || reservation.StartDate.DayOfWeek == DayOfWeek.Sunday))
+            if (!resource.Weekends && (reservation.StartDate.DayOfWeek == DayOfWeek.Saturday || reservation.StartDate.DayOfWeek == DayOfWeek.Sunday
+            || reservation.EndDate.DayOfWeek == DayOfWeek.Saturday || reservation.EndDate.DayOfWeek == DayOfWeek.Sunday))
                 throw new InvalidOperationException("It's not allowed reservations on weekends");
 
-            if (TimeOnly.FromDateTime(reservation.StartDate) <= resource.OpeningTime || TimeOnly.FromDateTime(reservation.EndDate) >= resource.ClosingTime)
+            if (TimeOnly.FromDateTime(reservation.StartDate) < resource.OpeningTime || TimeOnly.FromDateTime(reservation.EndDate) > resource.ClosingTime)
                 throw new InvalidOperationException("Reservation must be within Resource Hours");
+
+            var events = allReservations.SelectMany(r => new[]
+            {
+                (time: r.StartDate, delta: r.NumberOfPeople),
+                (time: r.EndDate, delta: -r.NumberOfPeople)
+            })
+            .OrderBy(e => e.time).ThenBy(e => e.delta);
+
+            foreach (var e in events)
+            {
+                current += e.delta;
+                max = Math.Max(max, current);
+            }
+
+            if (max > resource.Capacity) throw new InvalidOperationException(resource.Name + " has reached full capacity.");
         }
     }
 }
