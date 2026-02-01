@@ -17,9 +17,11 @@ namespace BookingSystem.Services
 
             var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
 
-            var reservations = await _reservationRepository.GetAllAsync(resource.Id, dto.StartDate, dto.EndDate);
+            var reservations = await _reservationRepository.GetAllAsync(resource.Id, reservation.StartDate, reservation.EndDate);
 
-            ValidateCreateReservation(reservation, resource, reservations);
+            ValidateReservation(reservation, resource);
+
+            ValidateCapacityNotExceeded(reservation, resource, reservations);
 
             await _reservationRepository.AddAsync(reservation);
 
@@ -47,6 +49,12 @@ namespace BookingSystem.Services
 
             var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
 
+            var reservations = await _reservationRepository.GetAllAsync(resource.Id, reservation.StartDate, reservation.EndDate);
+
+            ValidateReservation(reservation, resource);
+
+            ValidateCapacityNotExceeded(reservation, resource, reservations);
+
             await _reservationRepository.UpdateAsync(reservation);
 
             return reservation.ToReservationDto(resource);
@@ -58,10 +66,13 @@ namespace BookingSystem.Services
 
             var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
 
-            if (TimeOnly.FromDateTime(newStartDate) <= resource.OpeningTime || TimeOnly.FromDateTime(newEndDate) >= resource.ClosingTime)
-                throw new InvalidOperationException("Reservation must be within Resource Hours");
+            var reservations = await _reservationRepository.GetAllAsync(resource.Id, reservation.StartDate, reservation.EndDate);
 
             reservation.UpdateDateReservation(newStartDate, newEndDate);
+
+            ValidateReservation(reservation, resource);
+
+            ValidateCapacityNotExceeded(reservation, resource, reservations);
 
             await _reservationRepository.UpdateAsync(reservation);
 
@@ -74,7 +85,11 @@ namespace BookingSystem.Services
 
             var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
 
+            var reservations = await _reservationRepository.GetAllAsync(resource.Id, reservation.StartDate, reservation.EndDate);
+
             reservation.ChangeNumberOfPeople(newNumberOfPeople);
+
+            ValidateCapacityNotExceeded(reservation, resource, reservations);
 
             await _reservationRepository.UpdateAsync(reservation);
 
@@ -113,12 +128,8 @@ namespace BookingSystem.Services
             await _reservationRepository.DeleteAsync(reservation);
         }
 
-        private static void ValidateCreateReservation(Reservation reservation, Resource resource, List<Reservation> reservations)
+        private static void ValidateReservation(Reservation reservation, Resource resource)
         {
-            int current = 0;
-            int max = 0;
-            var allReservations  = reservations.Append(reservation);
-
             if (resource.Status == ResourceStatus.Unavailable) throw new InvalidOperationException("Resource is Unavailable");
 
             if (!resource.Weekends && (reservation.StartDate.DayOfWeek == DayOfWeek.Saturday || reservation.StartDate.DayOfWeek == DayOfWeek.Sunday
@@ -127,6 +138,13 @@ namespace BookingSystem.Services
 
             if (TimeOnly.FromDateTime(reservation.StartDate) < resource.OpeningTime || TimeOnly.FromDateTime(reservation.EndDate) > resource.ClosingTime)
                 throw new InvalidOperationException("Reservation must be within Resource Hours");
+        }
+
+        private static void ValidateCapacityNotExceeded(Reservation reservation, Resource resource, List<Reservation> reservations)
+        {
+            int current = 0;
+            int max = 0;
+            var allReservations = reservations.Append(reservation);
 
             var events = allReservations.SelectMany(r => new[]
             {
@@ -141,7 +159,7 @@ namespace BookingSystem.Services
                 max = Math.Max(max, current);
             }
 
-            if (max > resource.Capacity) throw new InvalidOperationException(resource.Name + " has reached full capacity.");
+            if (max > resource.Capacity) throw new InvalidOperationException(resource.Name + " has reached capacity limit.");
         }
     }
 }
