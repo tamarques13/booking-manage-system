@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using BookingSystem.DTOs;
 using BookingSystem.Services;
 using BookingSystem.Services.Interfaces;
+using BookingSystem.Models;
 
 namespace BookingSystem.Controllers
 {
@@ -47,9 +48,9 @@ namespace BookingSystem.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetReservations(Guid? ResourceId, DateTime? StartTime, DateTime? EndTime)
+        public async Task<IActionResult> GetReservations(Guid? ResourceId, DateTime? StartTime, DateTime? EndTime, ReservationStatus? status)
         {
-            var reservations = await _reservationService.GetReservationsAsync(ResourceId, StartTime, EndTime);
+            var reservations = await _reservationService.GetReservationsAsync(ResourceId, StartTime, EndTime, status);
             return Ok(reservations);
         }
 

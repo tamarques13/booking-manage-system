@@ -17,7 +17,8 @@ namespace BookingSystem.Services
 
             var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
 
-            var reservations = await _reservationRepository.GetAllAsync(resource.Id, reservation.StartDate, reservation.EndDate);
+            //TO DO: Status must be changed to Confirmed
+            var reservations = await _reservationRepository.GetAllAsync(resource.Id, reservation.StartDate, reservation.EndDate, reservation.Status);
 
             ValidateReservation(reservation, resource);
 
@@ -49,7 +50,7 @@ namespace BookingSystem.Services
 
             var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
 
-            var reservations = await _reservationRepository.GetAllAsync(resource.Id, reservation.StartDate, reservation.EndDate);
+            var reservations = await _reservationRepository.GetAllAsync(resource.Id, reservation.StartDate, reservation.EndDate, reservation.Status);
 
             ValidateReservation(reservation, resource);
 
@@ -66,7 +67,7 @@ namespace BookingSystem.Services
 
             var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
 
-            var reservations = await _reservationRepository.GetAllAsync(resource.Id, reservation.StartDate, reservation.EndDate);
+            var reservations = await _reservationRepository.GetAllAsync(resource.Id, reservation.StartDate, reservation.EndDate, reservation.Status);
 
             reservation.UpdateDateReservation(newStartDate, newEndDate);
 
@@ -85,7 +86,7 @@ namespace BookingSystem.Services
 
             var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
 
-            var reservations = await _reservationRepository.GetAllAsync(resource.Id, reservation.StartDate, reservation.EndDate);
+            var reservations = await _reservationRepository.GetAllAsync(resource.Id, reservation.StartDate, reservation.EndDate, reservation.Status);
 
             reservation.ChangeNumberOfPeople(newNumberOfPeople);
 
@@ -96,9 +97,9 @@ namespace BookingSystem.Services
             return reservation.ToReservationDto(resource);
         }
 
-        public async Task<List<ReservationDto>> GetReservationsAsync(Guid? resourceId, DateTime? startTime, DateTime? endtime)
+        public async Task<List<ReservationDto>> GetReservationsAsync(Guid? resourceId, DateTime? startTime, DateTime? endtime, ReservationStatus? status)
         {
-            var reservations = await _reservationRepository.GetAllAsync(resourceId, startTime, endtime);
+            var reservations = await _reservationRepository.GetAllAsync(resourceId, startTime, endtime, status);
 
             var reservationDtos = new List<ReservationDto>();
 
