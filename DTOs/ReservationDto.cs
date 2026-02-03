@@ -7,6 +7,7 @@ public class ReservationDto
     public DateTime EndDate { get; set; }
     public int NumberOfPeople { get; set; }
     public string Status { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
     public ReservationResourceDto Resource { get; set; } = null!;
 }
 

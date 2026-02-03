@@ -10,6 +10,7 @@ namespace BookingSystem.Models
         public DateTime EndDate { get; set; }
         public int NumberOfPeople { get; set; }
         public ReservationStatus Status { get; set; }
+        public DateTime CreatedAt { get; set; }
         public Guid ResourceId { get; set; }
 
         public Reservation(DateTime startDate, DateTime endDate, int numberOfPeople, Guid resourceId)
@@ -25,8 +26,8 @@ namespace BookingSystem.Models
             StartDate = startDate;
             EndDate = endDate;
             NumberOfPeople = numberOfPeople;
+            CreatedAt = DateTime.UtcNow;
             ResourceId = resourceId;
-
         }
 
         public void ConfirmReservation()
@@ -61,10 +62,9 @@ namespace BookingSystem.Models
 
         public void UpdateDateReservation(DateTime newStartDate, DateTime newEndDate)
         {
+            if (Status != ReservationStatus.Pending) throw new InvalidOperationException("Only pending reservations can be confirmed.");
             if (newStartDate < DateTime.Now) throw new ArgumentException("StartDate cannot be in the past");
             if (newEndDate <= newStartDate) throw new ArgumentException("EndDate must be after StartDate");
-
-            if (Status != ReservationStatus.Pending) throw new InvalidOperationException("Only pending reservations can be extended.");
 
             StartDate = newStartDate;
             EndDate = newEndDate;
@@ -72,14 +72,17 @@ namespace BookingSystem.Models
 
         public void ChangeNumberOfPeople(int newNumberOfPeople)
         {
-            if (newNumberOfPeople <= 0) throw new ArgumentException("Number of people must be greater than zero.");
+
             if (Status != ReservationStatus.Pending) throw new InvalidOperationException("Only pending reservations can change the number of people.");
+            if (newNumberOfPeople <= 0) throw new ArgumentException("Number of people must be greater than zero.");
 
             NumberOfPeople = newNumberOfPeople;
         }
 
         public void UpdateResource(Guid resourceId)
         {
+            if (Status != ReservationStatus.Pending) throw new InvalidOperationException("Only pending reservations can change the number of people.");
+            
             ResourceId = resourceId;
         }
     }

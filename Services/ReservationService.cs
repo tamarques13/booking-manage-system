@@ -17,12 +17,7 @@ namespace BookingSystem.Services
 
             var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
 
-            //TO DO: Status must be changed to Confirmed
-            var reservations = await _reservationRepository.GetAllAsync(resource.Id, reservation.StartDate, reservation.EndDate, reservation.Status);
-
             ValidateReservation(reservation, resource);
-
-            ValidateCapacityNotExceeded(reservation, resource, reservations);
 
             await _reservationRepository.AddAsync(reservation);
 
@@ -42,19 +37,32 @@ namespace BookingSystem.Services
             return reservation.ToReservationDto(resource);
         }
 
+        public async Task<ReservationDto> ConfirmReservationAsync(Guid reservationId)
+        {
+            var reservation = await _reservationRepository.GetByIdAsync(reservationId);
+
+            var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
+
+            reservation.ConfirmReservation();
+
+            var reservations = await _reservationRepository.GetAllAsync(resource.Id, reservation.StartDate, reservation.EndDate, reservation.Status);
+
+            ValidateCapacityNotExceeded(reservation, resource, reservations);
+
+            await _reservationRepository.UpdateAsync(reservation);
+
+            return reservation.ToReservationDto(resource);
+        }
+
         public async Task<ReservationDto> UpdateResourceAsync(Guid reservationId, Guid resourceId)
         {
             var reservation = await _reservationRepository.GetByIdAsync(reservationId);
 
-            reservation.UpdateResource(resourceId);
-
             var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
 
-            var reservations = await _reservationRepository.GetAllAsync(resource.Id, reservation.StartDate, reservation.EndDate, reservation.Status);
+            reservation.UpdateResource(resourceId);
 
             ValidateReservation(reservation, resource);
-
-            ValidateCapacityNotExceeded(reservation, resource, reservations);
 
             await _reservationRepository.UpdateAsync(reservation);
 
@@ -67,13 +75,9 @@ namespace BookingSystem.Services
 
             var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
 
-            var reservations = await _reservationRepository.GetAllAsync(resource.Id, reservation.StartDate, reservation.EndDate, reservation.Status);
-
             reservation.UpdateDateReservation(newStartDate, newEndDate);
 
             ValidateReservation(reservation, resource);
-
-            ValidateCapacityNotExceeded(reservation, resource, reservations);
 
             await _reservationRepository.UpdateAsync(reservation);
 
@@ -86,11 +90,7 @@ namespace BookingSystem.Services
 
             var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
 
-            var reservations = await _reservationRepository.GetAllAsync(resource.Id, reservation.StartDate, reservation.EndDate, reservation.Status);
-
             reservation.ChangeNumberOfPeople(newNumberOfPeople);
-
-            ValidateCapacityNotExceeded(reservation, resource, reservations);
 
             await _reservationRepository.UpdateAsync(reservation);
 
