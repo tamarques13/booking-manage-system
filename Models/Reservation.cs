@@ -3,25 +3,30 @@ namespace BookingSystem.Models
     public enum ReservationStatus { Pending, Confirmed, Cancelled, Completed, Expired }
     public class Reservation
     {
+        protected Reservation() { }
+
         public Guid Id { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public int NumberOfPeople { get; set; }
-        public required ReservationStatus Status { get; set; }
-        public required Resource Resource { get; set; }
+        public ReservationStatus Status { get; set; }
+        public Guid ResourceId { get; set; }
 
-        public Reservation(DateTime startDate, DateTime endDate, Resource resource, int numberOfPeople)
+        public Reservation(DateTime startDate, DateTime endDate, int numberOfPeople, Guid resourceId)
         {
             if (endDate <= startDate) throw new ArgumentException("EndDate must be after StartDate");
 
             if (startDate < DateTime.Now) throw new ArgumentException("StartDate cannot be in the past");
+
+            if (numberOfPeople <= 0) throw new ArgumentException("NumberOfPeople must be greater than zero");
 
             Id = Guid.NewGuid();
             Status = ReservationStatus.Pending;
             StartDate = startDate;
             EndDate = endDate;
             NumberOfPeople = numberOfPeople;
-            Resource = resource;
+            ResourceId = resourceId;
+
         }
 
         public void ConfirmReservation()
@@ -29,7 +34,6 @@ namespace BookingSystem.Models
             if (Status != ReservationStatus.Pending) throw new InvalidOperationException("Only pending reservations can be confirmed.");
             if (Status == ReservationStatus.Cancelled) throw new InvalidOperationException("A cancelled reservation cannot be confirmed");
 
-            Resource.BookResource();
             Status = ReservationStatus.Confirmed;
         }
 
@@ -55,11 +59,14 @@ namespace BookingSystem.Models
             Status = ReservationStatus.Expired;
         }
 
-        public void ExtendReservation(DateTime newEndDate)
+        public void UpdateDateReservation(DateTime newStartDate, DateTime newEndDate)
         {
-            if (newEndDate <= EndDate) throw new ArgumentException("New end date must be after the current end date.");
+            if (newStartDate < DateTime.Now) throw new ArgumentException("StartDate cannot be in the past");
+            if (newEndDate <= newStartDate) throw new ArgumentException("EndDate must be after StartDate");
+
             if (Status != ReservationStatus.Pending) throw new InvalidOperationException("Only pending reservations can be extended.");
 
+            StartDate = newStartDate;
             EndDate = newEndDate;
         }
 
@@ -69,6 +76,11 @@ namespace BookingSystem.Models
             if (Status != ReservationStatus.Pending) throw new InvalidOperationException("Only pending reservations can change the number of people.");
 
             NumberOfPeople = newNumberOfPeople;
+        }
+
+        public void UpdateResource(Guid resourceId)
+        {
+            ResourceId = resourceId;
         }
     }
 }

@@ -38,7 +38,6 @@ namespace BookingSystem.Repositories
             _context.Resources.Remove(resource);
 
             await _context.SaveChangesAsync();
-
         }
     }
 }

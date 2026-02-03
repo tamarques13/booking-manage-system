@@ -12,28 +12,25 @@ Env.Load();
 var builder = WebApplication.CreateBuilder(args);
 
 // Get connection string from .env
-var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING") 
-    ?? builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING") ?? builder.Configuration.GetConnectionString("DefaultConnection");
 
 // Add DbContext
-builder.Services.AddDbContext<BookingDbContext>(options =>
-    options.UseSqlServer(connectionString));
+builder.Services.AddDbContext<BookingDbContext>(options => options.UseSqlServer(connectionString));
 
 // Add Controllers
 builder.Services.AddControllers();
 
 // Add CORS
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll", builder =>
-        builder.AllowAnyOrigin()
-               .AllowAnyMethod()
-               .AllowAnyHeader());
+builder.Services.AddCors(options => {
+    options.AddPolicy("AllowAll", builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 });
 
 // Add Repository and Service
 builder.Services.AddScoped<IResourceRepository, ResourceRepository>();
+builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
+
 builder.Services.AddScoped<IResourceService, ResourceService>();
+builder.Services.AddScoped<IReservationService, ReservationService>();
 
 // Add services to the container.
 builder.Services.AddEndpointsApiExplorer();

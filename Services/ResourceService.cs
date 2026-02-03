@@ -2,6 +2,7 @@ using BookingSystem.Models;
 using BookingSystem.Services.Interfaces;
 using BookingSystem.Repositories.Interfaces;
 using BookingSystem.DTOs;
+using BookingSystem.Helpers;
 
 namespace BookingSystem.Services
 {
@@ -11,88 +12,73 @@ namespace BookingSystem.Services
 
         public async Task<ResourceDto> CreateResourceAsync(CreateResourceDto dto)
         {
-            var resource = new Resource(dto.Name, dto.Capacity, Enum.Parse<ResourceType>(dto.Type));
+            var resource = new Resource(dto.Name, dto.Capacity, Enum.Parse<ResourceType>(dto.Type), dto.OpeningTime, dto.ClosingTime, dto.Weekends);
+
             await _resourceRepository.AddAsync(resource);
 
-            var resourceDto = new ResourceDto
-            {
-                Id = resource.Id,
-                Name = resource.Name,
-                Capacity = resource.Capacity,
-                Type = resource.Type.ToString(),
-                Status = resource.Status.ToString()
-            };
-
-            return resourceDto;
+            return resource.ToResourceDto();
         }
 
-        public async Task<ResourceDto> BookResourceAsync(Guid resourceId)
+        public async Task<ResourceDto> UpdateResourceAsync(Guid resourceId, CreateResourceDto dto)
         {
             var resource = await _resourceRepository.GetByIdAsync(resourceId);
 
-            resource.BookResource();
+            ArgumentNullException.ThrowIfNull(dto);
+
+            resource.Update(dto.Name, dto.Capacity, Enum.Parse<ResourceType>(dto.Type), dto.OpeningTime, dto.ClosingTime);
 
             await _resourceRepository.UpdateAsync(resource);
 
-            var resourceDto = new ResourceDto
-            {
-                Id = resource.Id,
-                Name = resource.Name,
-                Capacity = resource.Capacity,
-                Type = resource.Type.ToString(),
-                Status = resource.Status.ToString()
-            };
-
-            return resourceDto;
+            return resource.ToResourceDto();
         }
 
-        public async Task<ResourceDto> ReleaseResourceAsync(Guid resourceId)
+        public async Task<ResourceDto> ActivateResourceAsync(Guid resourceId)
         {
             var resource = await _resourceRepository.GetByIdAsync(resourceId);
 
-            resource.ReleaseResource();
+            resource.ActivateResource();
 
             await _resourceRepository.UpdateAsync(resource);
 
-            var resourceDto = new ResourceDto
-            {
-                Id = resource.Id,
-                Name = resource.Name,
-                Capacity = resource.Capacity,
-                Type = resource.Type.ToString(),
-                Status = resource.Status.ToString()
-            };
-
-            return resourceDto;
+            return resource.ToResourceDto();
         }
+
+        public async Task<ResourceDto> DeactivateResourceAsync(Guid resourceId)
+        {
+            var resource = await _resourceRepository.GetByIdAsync(resourceId);
+
+            resource.DeactivateResource();
+
+            await _resourceRepository.UpdateAsync(resource);
+
+            return resource.ToResourceDto();
+        }
+
+        public async Task<ResourceDto> UpdateWeekendAsync(Guid resourceId)
+        {
+            var resource = await _resourceRepository.GetByIdAsync(resourceId);
+
+            resource.UpdateWeekend();
+
+            await _resourceRepository.UpdateAsync(resource);
+
+            return resource.ToResourceDto();
+        }
+
         public async Task<List<ResourceDto>> GetResourcesAsync()
         {
             var resources = await _resourceRepository.GetAllAsync();
 
-            return resources.Select(resource => new ResourceDto
-            {
-                Id = resource.Id,
-                Name = resource.Name,
-                Capacity = resource.Capacity,
-                Type = resource.Type.ToString(),
-                Status = resource.Status.ToString()
-            }).ToList();
+            var ResourcesList = resources.Select(resource => resource.ToResourceDto()).ToList();
+
+            return ResourcesList;
         }
 
         public async Task<ResourceDto> GetResourceByIdAsync(Guid resourceId)
         {
             var resource = await _resourceRepository.GetByIdAsync(resourceId);
 
-            var resourceDto = new ResourceDto
-            {
-                Id = resource.Id,
-                Name = resource.Name,
-                Capacity = resource.Capacity,
-                Type = resource.Type.ToString(),
-                Status = resource.Status.ToString()
-            };
-
-            return resourceDto;
+            return resource.ToResourceDto();
         }
 
         public async Task DeleteResourceAsync(Guid resourceId)

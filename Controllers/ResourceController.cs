@@ -18,22 +18,36 @@ namespace BookingSystem.Controllers
             return Ok(resourceDto);
         }
 
-        [HttpPut("{id}/book")]
-        public async Task<IActionResult> BookResource(Guid id)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateResource(Guid id, CreateResourceDto dto)
         {
-            var resourceDto = await _resourceService.BookResourceAsync(id);
+            var resourceDto = await _resourceService.UpdateResourceAsync(id, dto);
             return Ok(resourceDto);
         }
 
-        [HttpPut("{id}/release")]
-        public async Task<IActionResult> ReleaseResource(Guid id)
+        [HttpPatch("{id}/activate")]
+        public async Task<IActionResult> ActivateResource(Guid id)
         {
-            var resourceDto = await _resourceService.ReleaseResourceAsync(id);
+            var resourceDto = await _resourceService.ActivateResourceAsync(id);
+            return Ok(resourceDto);
+        }
+
+        [HttpPatch("{id}/deactivate")]
+        public async Task<IActionResult> DeactivateResource(Guid id)
+        {
+            var resourceDto = await _resourceService.DeactivateResourceAsync(id);
+            return Ok(resourceDto);
+        }
+
+        [HttpPatch("{id}/weekends")]
+        public async Task<IActionResult> UpdateWeekends(Guid id)
+        {
+            var resourceDto = await _resourceService.UpdateWeekendAsync(id);
             return Ok(resourceDto);
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllResources()
+        public async Task<IActionResult> GetResources()
         {
             var resources = await _resourceService.GetResourcesAsync();
             return Ok(resources);
