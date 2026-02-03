@@ -47,6 +47,13 @@ namespace BookingSystem.Controllers
             return Ok(reservationDto);
         }
 
+        [HttpPatch("{id}/confirm")]
+        public async Task<IActionResult> ConfirmReservation(Guid id)
+        {
+            var reservationDto = await _reservationService.ConfirmReservationAsync(id);
+            return Ok(reservationDto);
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetReservations(Guid? ResourceId, DateTime? StartTime, DateTime? EndTime, ReservationStatus? status)
         {

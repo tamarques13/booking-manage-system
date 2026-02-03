@@ -7,6 +7,7 @@ namespace BookingSystem.Services.Interfaces
     {
         Task<ReservationDto> CreateReservationAsync(CreateReservationDto dto);
         Task<ReservationDto> CancelReservationAsync(Guid reservationId);
+        Task<ReservationDto> ConfirmReservationAsync(Guid reservationId);
         Task<ReservationDto> UpdateResourceAsync(Guid reservationId, Guid resourceId);
         Task<ReservationDto> UpdateDateAsync(Guid reservationId, DateTime newStartDate, DateTime newEndDate);
         Task<ReservationDto> UpdateNumberOfPeopleAsync(Guid reservationId, int newNumberOfPeople);

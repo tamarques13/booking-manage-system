@@ -16,6 +16,7 @@ namespace BookingSystem.Helpers
                 EndDate = reservation.EndDate,
                 NumberOfPeople = reservation.NumberOfPeople,
                 Status = reservation.Status.ToString(),
+                CreatedAt = reservation.CreatedAt,
                 Resource = new ReservationResourceDto
                 {
                     ResourceId = resource.Id,
