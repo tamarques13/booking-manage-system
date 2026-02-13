@@ -1,3 +1,5 @@
+using BookingSystem.ExceptionHelper;
+
 namespace BookingSystem.Models
 {
     public enum ReservationStatus { Pending, Confirmed, Cancelled, Completed, Expired }
@@ -32,37 +34,37 @@ namespace BookingSystem.Models
 
         public void ConfirmReservation()
         {
-            if (Status != ReservationStatus.Pending) throw new InvalidOperationException("Only pending reservations can be confirmed.");
-            if (Status == ReservationStatus.Cancelled) throw new InvalidOperationException("A cancelled reservation cannot be confirmed");
+            if (Status != ReservationStatus.Pending) throw new DomainException("Only pending reservations can be confirmed.");
+            if (Status == ReservationStatus.Cancelled) throw new DomainException("A cancelled reservation cannot be confirmed");
 
             Status = ReservationStatus.Confirmed;
         }
 
         public void CancelReservation()
         {
-            if (Status == ReservationStatus.Cancelled) throw new InvalidOperationException("Reservation is already cancelled.");
-            if (Status == ReservationStatus.Completed) throw new InvalidOperationException("A completed reservation cannot be cancelled");
+            if (Status == ReservationStatus.Cancelled) throw new DomainException("Reservation is already cancelled.");
+            if (Status == ReservationStatus.Completed) throw new DomainException("A completed reservation cannot be cancelled");
 
             Status = ReservationStatus.Cancelled;
         }
 
         public void CompleteReservation()
         {
-            if (Status != ReservationStatus.Confirmed) throw new InvalidOperationException("Only confirmed reservations can be completed.");
+            if (Status != ReservationStatus.Confirmed) throw new DomainException("Only confirmed reservations can be completed.");
 
             Status = ReservationStatus.Completed;
         }
 
         public void ExpireReservation()
         {
-            if (Status != ReservationStatus.Pending) throw new InvalidOperationException("Only pending reservations can be expired.");
+            if (Status != ReservationStatus.Pending) throw new DomainException("Only pending reservations can be expired.");
 
             Status = ReservationStatus.Expired;
         }
 
         public void UpdateDateReservation(DateTime newStartDate, DateTime newEndDate)
         {
-            if (Status != ReservationStatus.Pending) throw new InvalidOperationException("Only pending reservations can be confirmed.");
+            if (Status != ReservationStatus.Pending) throw new DomainException("Only pending reservations can be confirmed.");
             if (newStartDate < DateTime.Now) throw new ArgumentException("StartDate cannot be in the past");
             if (newEndDate <= newStartDate) throw new ArgumentException("EndDate must be after StartDate");
 
@@ -73,7 +75,7 @@ namespace BookingSystem.Models
         public void ChangeNumberOfPeople(int newNumberOfPeople)
         {
 
-            if (Status != ReservationStatus.Pending) throw new InvalidOperationException("Only pending reservations can change the number of people.");
+            if (Status != ReservationStatus.Pending) throw new DomainException("Only pending reservations can change the number of people.");
             if (newNumberOfPeople <= 0) throw new ArgumentException("Number of people must be greater than zero.");
 
             NumberOfPeople = newNumberOfPeople;
@@ -81,7 +83,7 @@ namespace BookingSystem.Models
 
         public void UpdateResource(Guid resourceId)
         {
-            if (Status != ReservationStatus.Pending) throw new InvalidOperationException("Only pending reservations can change the number of people.");
+            if (Status != ReservationStatus.Pending) throw new DomainException("Only pending reservations can change the number of people.");
             
             ResourceId = resourceId;
         }

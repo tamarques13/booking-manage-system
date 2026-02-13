@@ -1,3 +1,5 @@
+using BookingSystem.ExceptionHelper;
+
 namespace BookingSystem.Models
 {
     public enum ResourceType { Office, ConferenceRoom, MeetingRoom }
@@ -15,7 +17,7 @@ namespace BookingSystem.Models
 
         public Resource(string name, int capacity, ResourceType type, TimeOnly openingTime, TimeOnly closingTime, bool weekends)
         {
-            if (Status != ResourceStatus.Available) throw new InvalidOperationException("Resource is not available for reservation.");
+            if (Status != ResourceStatus.Available) throw new DomainException("Resource is not available for reservation.");
 
             Id = Guid.NewGuid();
             Name = name;
@@ -44,14 +46,14 @@ namespace BookingSystem.Models
 
         public void ActivateResource()
         {
-            if (Status == ResourceStatus.Available) throw new InvalidOperationException("Resource is already available.");
+            if (Status == ResourceStatus.Available) throw new DomainException("Resource is already available.");
 
             Status = ResourceStatus.Available;
         }
 
         public void DeactivateResource()
         {
-            if (Status == ResourceStatus.Unavailable) throw new InvalidOperationException("Resource is already booked.");
+            if (Status == ResourceStatus.Unavailable) throw new DomainException("Resource is already booked.");
 
             Status = ResourceStatus.Unavailable;
         }

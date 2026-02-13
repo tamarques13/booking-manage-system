@@ -1,7 +1,5 @@
 using BookingSystem.DTOs;
 using BookingSystem.Models;
-using BookingSystem.Repositories.Interfaces;
-using System.Threading.Tasks;
 
 namespace BookingSystem.Helpers
 {
