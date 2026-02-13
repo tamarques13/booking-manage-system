@@ -3,6 +3,8 @@ using BookingSystem.DTOs;
 using BookingSystem.Repositories.Interfaces;
 using BookingSystem.Services.Interfaces;
 using BookingSystem.Helpers;
+using BookingSystem.Jobs;
+using Hangfire;
 
 namespace BookingSystem.Services
 {
@@ -17,13 +19,13 @@ namespace BookingSystem.Services
 
             var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
 
-            var reservations = await _reservationRepository.GetAllAsync(resource.Id, reservation.StartDate, reservation.EndDate, reservation.Status);
-
             ValidateReservation(reservation, resource);
 
-            ValidateCapacityNotExceeded(reservation, resource, reservations);
+            ValidateCapacityNotExceeded(reservation, resource);
 
             await _reservationRepository.AddAsync(reservation);
+
+            BackgroundJob.Schedule<ReservationJob>((job) => job.ExpireReservation(reservation.Id), TimeSpan.FromSeconds(60));
 
             return reservation.ToReservationDto(resource);
         }
@@ -60,13 +62,11 @@ namespace BookingSystem.Services
 
             var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
 
-            var reservations = await _reservationRepository.GetAllAsync(resource.Id, reservation.StartDate, reservation.EndDate, reservation.Status);
-
             reservation.UpdateResource(resourceId);
 
             ValidateReservation(reservation, resource);
 
-            ValidateCapacityNotExceeded(reservation, resource, reservations);
+            ValidateCapacityNotExceeded(reservation, resource);
 
             await _reservationRepository.UpdateAsync(reservation);
 
@@ -79,13 +79,11 @@ namespace BookingSystem.Services
 
             var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
 
-            var reservations = await _reservationRepository.GetAllAsync(resource.Id, reservation.StartDate, reservation.EndDate, reservation.Status);
-
             reservation.UpdateDateReservation(newStartDate, newEndDate);
 
             ValidateReservation(reservation, resource);
 
-            ValidateCapacityNotExceeded(reservation, resource, reservations);
+            ValidateCapacityNotExceeded(reservation, resource);
 
             await _reservationRepository.UpdateAsync(reservation);
 
@@ -97,12 +95,10 @@ namespace BookingSystem.Services
             var reservation = await _reservationRepository.GetByIdAsync(reservationId);
 
             var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
-            
-            var reservations = await _reservationRepository.GetAllAsync(resource.Id, reservation.StartDate, reservation.EndDate, reservation.Status);
 
             reservation.ChangeNumberOfPeople(newNumberOfPeople);
 
-            ValidateCapacityNotExceeded(reservation, resource, reservations);
+            ValidateCapacityNotExceeded(reservation, resource);
 
             await _reservationRepository.UpdateAsync(reservation);
 
@@ -153,13 +149,16 @@ namespace BookingSystem.Services
                 throw new InvalidOperationException("Reservation must be within Resource Hours");
         }
 
-        private static void ValidateCapacityNotExceeded(Reservation reservation, Resource resource, List<Reservation> reservations)
+        private async void ValidateCapacityNotExceeded(Reservation reservation, Resource resource)
         {
             int current = 0;
             int max = 0;
-            var allReservations = reservations.Append(reservation);
 
-            var events = allReservations.SelectMany(r => new[]
+            var Reservations = await _reservationRepository.GetAllAsync(resource.Id, reservation.StartDate, reservation.EndDate, reservation.Status);
+            var confrimedReservations = await _reservationRepository.GetAllAsync(resource.Id, reservation.StartDate, reservation.EndDate, ReservationStatus.Confirmed);
+            Reservations.AddRange(confrimedReservations);
+
+            var events = Reservations.SelectMany(r => new[]
             {
                 (time: r.StartDate, delta: r.NumberOfPeople),
                 (time: r.EndDate, delta: -r.NumberOfPeople)
