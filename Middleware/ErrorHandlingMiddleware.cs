@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using BookingSystem.Services;
+using BookingSystem.ExceptionHelper;
 
 internal sealed class GlobalExceptionHandlerMiddleware(RequestDelegate next, ILogger<GlobalExceptionHandlerMiddleware> logger)
 {
@@ -15,8 +15,8 @@ internal sealed class GlobalExceptionHandlerMiddleware(RequestDelegate next, ILo
 
             var statusCode = ex switch
             {
+                DomainException => StatusCodes.Status400BadRequest,
                 ArgumentException => StatusCodes.Status400BadRequest,
-                InvalidOperationException => StatusCodes.Status400BadRequest,
                 UnauthorizedAccessException => StatusCodes.Status401Unauthorized,
                 KeyNotFoundException => StatusCodes.Status404NotFound,
                 _ => StatusCodes.Status500InternalServerError

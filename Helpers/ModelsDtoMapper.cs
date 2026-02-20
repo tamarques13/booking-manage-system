@@ -1,7 +1,5 @@
 using BookingSystem.DTOs;
 using BookingSystem.Models;
-using BookingSystem.Repositories.Interfaces;
-using System.Threading.Tasks;
 
 namespace BookingSystem.Helpers
 {
@@ -30,10 +28,9 @@ namespace BookingSystem.Helpers
 
             if (isGetAll)
             {
-                if (reservationDtos == null) throw new ArgumentNullException(nameof(reservationDtos), "You must provide a list when executing GetAll.");
+                if (reservationDtos == null) throw new Exception("You must provide a list when executing GetAll.");
 
                 reservationDtos.Add(reservationDto);
-                return null!;
             }
 
             return reservationDto;
