@@ -28,6 +28,17 @@ namespace BookingSystem.Repositories
             return await _context.Resources.FindAsync(resourceId) ?? throw new KeyNotFoundException($"Resource with Id {resourceId} not found.");
         }
 
+        public async Task<List<Resource>> GetByIdsAsync(List<Guid> ids)
+        {
+            if (ids.Count == 0) return new List<Resource>();
+            
+            IQueryable<Resource> query = _context.Resources;
+            
+            query = query.Where(r => ids.Contains(r.Id));
+
+             return await _context.Resources.Where(r => ids.Contains(r.Id)).ToListAsync();
+        }
+
         public async Task<List<Resource>> GetAllAsync()
         {
             return await _context.Resources.ToListAsync();
