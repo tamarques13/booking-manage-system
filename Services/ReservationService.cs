@@ -177,7 +177,7 @@ namespace BookingSystem.Services
         /// <param name="status">Optional reservation status filter.</param>
         /// <returns>List of reservation DTOs.</returns>
 
-        public async Task<List<ReservationDto>> GetReservationsAsync(Guid? resourceId, DateTime? startTime, DateTime? endtime, ReservationStatus[]? status)
+        public async Task<List<ReservationDto>> GetReservationsAsync(Guid? resourceId, DateTime? startTime, DateTime? endtime, ReservationStatus[] status)
         {
             var reservations = await _reservationRepository.GetAllAsync(resourceId, startTime, endtime, status);
             var resourceIds = reservations.Select(r => r.ResourceId).Distinct().ToList();

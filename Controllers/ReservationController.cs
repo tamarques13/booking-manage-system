@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using BookingSystem.DTOs;
-using BookingSystem.Services;
 using BookingSystem.Services.Interfaces;
 using BookingSystem.Models;
 
@@ -16,7 +15,7 @@ namespace BookingSystem.Controllers
         public async Task<IActionResult> CreateReservation(CreateReservationDto dto)
         {
             var reservationDto = await _reservationService.CreateReservationAsync(dto);
-            return Ok(reservationDto);
+            return CreatedAtAction(nameof(GetReservationById), new { id = reservationDto.Id }, reservationDto);
         }
 
         [HttpPatch("{id}/cancel")]
@@ -55,7 +54,7 @@ namespace BookingSystem.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetReservations(Guid? ResourceId, DateTime? StartTime, DateTime? EndTime, [FromQuery]ReservationStatus[]? status)
+        public async Task<IActionResult> GetReservations(Guid? ResourceId, DateTime? StartTime, DateTime? EndTime, [FromQuery]ReservationStatus[] status)
         {
             var reservations = await _reservationService.GetReservationsAsync(ResourceId, StartTime, EndTime, status);
             return Ok(reservations);
