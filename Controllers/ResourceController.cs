@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using BookingSystem.DTOs;
-using BookingSystem.Services;
 using BookingSystem.Services.Interfaces;
 
 namespace BookingSystem.Controllers
@@ -15,7 +14,7 @@ namespace BookingSystem.Controllers
         public async Task<IActionResult> CreateResource(CreateResourceDto dto)
         {
             var resourceDto = await _resourceService.CreateResourceAsync(dto);
-            return Ok(resourceDto);
+            return CreatedAtAction(nameof(GetResourceById), new { id = resourceDto.Id }, resourceDto);
         }
 
         [HttpPut("{id}")]
