@@ -10,6 +10,7 @@ using BookingSystem.Services;
 using BookingSystem.Repositories;
 using BookingSystem.Data;
 using BookingSystem.Jobs;
+using BookingSystem.Middleware;
 
 Env.Load();
 var builder = WebApplication.CreateBuilder(args);
@@ -66,8 +67,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 {
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuer = false,
-        ValidateAudience = false,
+        ValidateIssuer = true,
+        ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         ValidIssuer = Environment.GetEnvironmentVariable("ISSUER"),

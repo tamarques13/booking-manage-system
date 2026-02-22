@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using BookingSystem.Repositories.Interfaces;
 using BookingSystem.Data;
 using BookingSystem.Models;
@@ -17,7 +18,7 @@ namespace BookingSystem.Repositories
 
         public async Task<User?> GetByEmailAsync(string email)
         {
-            return _context.Users.FirstOrDefault(u => u.Email == email);
+            return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
     }
 }

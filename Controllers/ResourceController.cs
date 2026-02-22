@@ -7,11 +7,11 @@ namespace BookingSystem.Controllers
 {
     [ApiController]
     [Route("api/resources")]
+    [Authorize(Roles = "Admin")]
     public class ResourceController(IResourceService resourceService) : ControllerBase
     {
         private readonly IResourceService _resourceService = resourceService;
 
-        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> CreateResource(CreateResourceDto dto)
         {
@@ -19,7 +19,6 @@ namespace BookingSystem.Controllers
             return CreatedAtAction(nameof(GetResourceById), new { id = resourceDto.Id }, resourceDto);
         }
 
-        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateResource(Guid id, CreateResourceDto dto)
         {
@@ -27,7 +26,6 @@ namespace BookingSystem.Controllers
             return Ok(resourceDto);
         }
 
-        [Authorize(Roles = "Admin")]
         [HttpPatch("{id}/activate")]
         public async Task<IActionResult> ActivateResource(Guid id)
         {
@@ -35,7 +33,6 @@ namespace BookingSystem.Controllers
             return Ok(resourceDto);
         }
 
-        [Authorize(Roles = "Admin")]
         [HttpPatch("{id}/deactivate")]
         public async Task<IActionResult> DeactivateResource(Guid id)
         {
@@ -43,7 +40,6 @@ namespace BookingSystem.Controllers
             return Ok(resourceDto);
         }
 
-        [Authorize(Roles = "Admin")]
         [HttpPatch("{id}/weekends")]
         public async Task<IActionResult> UpdateWeekends(Guid id)
         {
@@ -51,7 +47,7 @@ namespace BookingSystem.Controllers
             return Ok(resourceDto);
         }
 
-        [Authorize]
+        [Authorize(Roles = "User")]
         [HttpGet]
         public async Task<IActionResult> GetResources()
         {
@@ -59,7 +55,6 @@ namespace BookingSystem.Controllers
             return Ok(resources);
         }
 
-        [Authorize(Roles = "Admin")]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetResourceById(Guid id)
         {
@@ -67,7 +62,6 @@ namespace BookingSystem.Controllers
             return Ok(resourceDto);
         }
 
-        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteResource(Guid id)
         {

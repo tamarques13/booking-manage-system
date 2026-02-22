@@ -23,15 +23,15 @@ namespace BookingSystem.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task<Reservation> GetByIdAsync(Guid reservationId)
+        public async Task<Reservation> GetByIdAsync(Guid reservationId, Guid userId)
         {
-            return await _context.Reservations.FindAsync(reservationId) ?? throw new KeyNotFoundException($"Reservation with Id {reservationId} not found.");
+            return await _context.Reservations.FirstOrDefaultAsync(r => r.Id == reservationId && r.UserId == userId) ?? throw new KeyNotFoundException($"Reservation with Id {reservationId} not found.");
         }
 
-        public async Task<List<Reservation>> GetAllAsync(Guid? resourceId, DateTime? startTime, DateTime? endTime, ReservationStatus[] status)
+        public async Task<List<Reservation>> GetAllAsync(Guid? resourceId, DateTime? startTime, DateTime? endTime, ReservationStatus[] status, Guid userId)
 
         {
-            IQueryable<Reservation> query = _context.Reservations;
+            IQueryable<Reservation> query = _context.Reservations.Where(r => r.UserId == userId);
 
             if (resourceId.HasValue) query = query.Where(x => x.ResourceId == resourceId.Value);
 
