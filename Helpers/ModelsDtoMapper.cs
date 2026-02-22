@@ -5,9 +5,9 @@ namespace BookingSystem.Helpers
 {
     public static class ModelsDtoMapper
     {
-        public static ReservationDto ToReservationDto(this Reservation reservation, Resource resource, bool isGetAll = false, List<ReservationDto>? reservationDtos = null)
+        public static ReservationDto ToReservationDto(this Reservation reservation, Resource resource, List<ReservationDto>? reservationDtos = null)
         {
-            var reservationDto = new ReservationDto
+            return new ReservationDto
             {
                 Id = reservation.Id,
                 StartDate = reservation.StartDate,
@@ -25,15 +25,6 @@ namespace BookingSystem.Helpers
                     Weekends = resource.Weekends,
                 }
             };
-
-            if (isGetAll)
-            {
-                if (reservationDtos == null) throw new Exception("You must provide a list when executing GetAll.");
-
-                reservationDtos.Add(reservationDto);
-            }
-
-            return reservationDto;
         }
 
         public static ResourceDto ToResourceDto(this Resource resource)

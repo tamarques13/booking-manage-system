@@ -7,9 +7,9 @@ namespace BookingSystem.Jobs
     public class ReservationJob(IReservationRepository reservationRepository)
     {
         private readonly IReservationRepository _reservationRepository = reservationRepository;
-        public async Task ExpireReservation(Guid Id)
+        public async Task ExpireReservation(Guid Id, Guid userId)
         {
-           var reservation = await _reservationRepository.GetByIdAsync(Id);
+           var reservation = await _reservationRepository.GetByIdAsync(Id, userId);
 
             if(reservation.Status == ReservationStatus.Confirmed) return;
 

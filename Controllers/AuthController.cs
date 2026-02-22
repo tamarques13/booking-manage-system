@@ -7,11 +7,11 @@ namespace BookingSystem.Controllers
 {
     [ApiController]
     [Route("api/auth")]
+    [AllowAnonymous]
     public class AuthController(IAuthService authService) : ControllerBase
     {
         private readonly IAuthService _authService = authService;
 
-        [AllowAnonymous]
         [HttpPost("register")]
         public async Task<IActionResult> CreateUser([FromBody] CreateUserDto dto)
         {
@@ -20,7 +20,6 @@ namespace BookingSystem.Controllers
             return StatusCode(StatusCodes.Status201Created, UserTokenDto);
         }
 
-        [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> LoginUser([FromBody] LoginUserDto dto)
         {

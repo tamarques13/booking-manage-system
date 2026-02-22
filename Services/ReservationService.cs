@@ -34,18 +34,18 @@ namespace BookingSystem.Services
         /// <exception cref="KeyNotFoundException"> Thrown when the resource does not exist. </exception>
         /// <exception cref="DomainException">Thrown when the reservation violates business rules. </exception>
 
-        public async Task<ReservationDto> CreateReservationAsync(CreateReservationDto dto)
+        public async Task<ReservationDto> CreateReservationAsync(CreateReservationDto dto, string userId)
         {
-            var reservation = new Reservation(dto.StartDate, dto.EndDate, dto.NumberOfPeople, dto.ResourceId);
+            var reservation = new Reservation(dto.StartDate, dto.EndDate, dto.NumberOfPeople, dto.ResourceId, Guid.Parse(userId));
             var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
 
             resource.ValidateReservation(reservation, resource);
 
-            await ValidateCapacityNotExceeded(reservation, resource);
+            await ValidateCapacityNotExceeded(reservation, resource, userId);
 
             await _reservationRepository.AddAsync(reservation);
 
-            BackgroundJob.Schedule<ReservationJob>((job) => job.ExpireReservation(reservation.Id), TimeSpan.FromSeconds(60));
+            BackgroundJob.Schedule<ReservationJob>((job) => job.ExpireReservation(reservation.Id, Guid.Parse(userId)), TimeSpan.FromSeconds(60));
 
             return reservation.ToReservationDto(resource);
         }
@@ -59,9 +59,9 @@ namespace BookingSystem.Services
         /// <exception cref="KeyNotFoundException"> Thrown when the reservation or/and resource does not exist. </exception>
         /// <exception cref="DomainException">Thrown when the reservation violates business rules. </exception>
 
-        public async Task<ReservationDto> CancelReservationAsync(Guid reservationId)
+        public async Task<ReservationDto> CancelReservationAsync(Guid reservationId, string userId)
         {
-            var reservation = await _reservationRepository.GetByIdAsync(reservationId);
+            var reservation = await _reservationRepository.GetByIdAsync(reservationId, Guid.Parse(userId));
             var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
 
             reservation.CancelReservation();
@@ -81,9 +81,9 @@ namespace BookingSystem.Services
         /// <exception cref="KeyNotFoundException"> Thrown when the reservation or/and resource does not exist. </exception>
         /// <exception cref="DomainException">Thrown when the reservation violates business rules. </exception>
 
-        public async Task<ReservationDto> ConfirmReservationAsync(Guid reservationId)
+        public async Task<ReservationDto> ConfirmReservationAsync(Guid reservationId, string userId)
         {
-            var reservation = await _reservationRepository.GetByIdAsync(reservationId);
+            var reservation = await _reservationRepository.GetByIdAsync(reservationId, Guid.Parse(userId));
             var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
 
             reservation.ConfirmReservation();
@@ -103,16 +103,16 @@ namespace BookingSystem.Services
         /// <exception cref="KeyNotFoundException"> Thrown when the reservation or/and resource does not exist. </exception>
         /// <exception cref="DomainException">Thrown when the reservation violates business rules. </exception>
 
-        public async Task<ReservationDto> UpdateResourceAsync(Guid reservationId, Guid resourceId)
+        public async Task<ReservationDto> UpdateResourceAsync(Guid reservationId, Guid resourceId, string userId)
         {
-            var reservation = await _reservationRepository.GetByIdAsync(reservationId);
+            var reservation = await _reservationRepository.GetByIdAsync(reservationId, Guid.Parse(userId));
 
             reservation.UpdateResource(resourceId);
 
             var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
 
             resource.ValidateReservation(reservation, resource);
-            await ValidateCapacityNotExceeded(reservation, resource);
+            await ValidateCapacityNotExceeded(reservation, resource, userId);
 
             await _reservationRepository.UpdateAsync(reservation);
 
@@ -130,15 +130,15 @@ namespace BookingSystem.Services
         /// <exception cref="KeyNotFoundException"> Thrown when the reservation or/and resource does not exist. </exception>
         /// <exception cref="DomainException">Thrown when the reservation violates business rules. </exception>
 
-        public async Task<ReservationDto> UpdateDateAsync(Guid reservationId, DateTime newStartDate, DateTime newEndDate)
+        public async Task<ReservationDto> UpdateDateAsync(Guid reservationId, DateTime newStartDate, DateTime newEndDate, string userId)
         {
-            var reservation = await _reservationRepository.GetByIdAsync(reservationId);
+            var reservation = await _reservationRepository.GetByIdAsync(reservationId, Guid.Parse(userId));
             var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
 
             reservation.UpdateDateReservation(newStartDate, newEndDate);
 
             resource.ValidateReservation(reservation, resource);
-            await ValidateCapacityNotExceeded(reservation, resource);
+            await ValidateCapacityNotExceeded(reservation, resource, userId);
 
             await _reservationRepository.UpdateAsync(reservation);
 
@@ -155,14 +155,14 @@ namespace BookingSystem.Services
         /// <exception cref="KeyNotFoundException"> Thrown when the reservation or/and resource does not exist. </exception>
         /// <exception cref="DomainException">Thrown when the reservation violates business rules. </exception>
 
-        public async Task<ReservationDto> UpdateNumberOfPeopleAsync(Guid reservationId, int newNumberOfPeople)
+        public async Task<ReservationDto> UpdateNumberOfPeopleAsync(Guid reservationId, int newNumberOfPeople, string userId)
         {
-            var reservation = await _reservationRepository.GetByIdAsync(reservationId);
+            var reservation = await _reservationRepository.GetByIdAsync(reservationId, Guid.Parse(userId));
             var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
 
             reservation.ChangeNumberOfPeople(newNumberOfPeople);
 
-            await ValidateCapacityNotExceeded(reservation, resource);
+            await ValidateCapacityNotExceeded(reservation, resource, userId);
             await _reservationRepository.UpdateAsync(reservation);
 
             return reservation.ToReservationDto(resource);
@@ -177,9 +177,9 @@ namespace BookingSystem.Services
         /// <param name="status">Optional reservation status filter.</param>
         /// <returns>List of reservation DTOs.</returns>
 
-        public async Task<List<ReservationDto>> GetReservationsAsync(Guid? resourceId, DateTime? startTime, DateTime? endtime, ReservationStatus[] status)
+        public async Task<List<ReservationDto>> GetReservationsAsync(Guid? resourceId, DateTime? startTime, DateTime? endtime, ReservationStatus[] status, string userId)
         {
-            var reservations = await _reservationRepository.GetAllAsync(resourceId, startTime, endtime, status);
+            var reservations = await _reservationRepository.GetAllAsync(resourceId, startTime, endtime, status, Guid.Parse(userId));
             var resourceIds = reservations.Select(r => r.ResourceId).Distinct().ToList();
             var resources = await _resourceRepository.GetByIdsAsync(resourceIds);
             var resourceDictionary = resources.ToDictionary(r => r.Id);
@@ -189,7 +189,7 @@ namespace BookingSystem.Services
             foreach (var reservation in reservations)
             {
                 var resource = resourceDictionary[reservation.ResourceId];
-                reservationDtos.Add(reservation.ToReservationDto(resource, isGetAll: true, reservationDtos: reservationDtos));
+                reservationDtos.Add(reservation.ToReservationDto(resource, reservationDtos: reservationDtos));
             }
 
             return reservationDtos;
@@ -203,9 +203,9 @@ namespace BookingSystem.Services
         /// 
         /// <exception cref="KeyNotFoundException"> Thrown when the reservation or/and resource does not exist. </exception>
 
-        public async Task<ReservationDto> GetReservationByIdAsync(Guid reservationId)
+        public async Task<ReservationDto> GetReservationByIdAsync(Guid reservationId, string userId)
         {
-            var reservation = await _reservationRepository.GetByIdAsync(reservationId);
+            var reservation = await _reservationRepository.GetByIdAsync(reservationId, Guid.Parse(userId));
             var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
 
             return reservation.ToReservationDto(resource);
@@ -218,9 +218,9 @@ namespace BookingSystem.Services
         /// 
         /// <exception cref="KeyNotFoundException"> Thrown when the reservation does not exist. </exception>
 
-        public async Task DeleteReservationAsync(Guid reservationId)
+        public async Task DeleteReservationAsync(Guid reservationId, string userId)
         {
-            var reservation = await _reservationRepository.GetByIdAsync(reservationId);
+            var reservation = await _reservationRepository.GetByIdAsync(reservationId, Guid.Parse(userId));
 
             await _reservationRepository.DeleteAsync(reservation);
         }
@@ -233,12 +233,12 @@ namespace BookingSystem.Services
         /// 
         /// <exception cref="DomainException">If capacity would be exceeded.</exception>
 
-        private async Task ValidateCapacityNotExceeded(Reservation reservation, Resource resource)
+        private async Task ValidateCapacityNotExceeded(Reservation reservation, Resource resource, string userId)
         {
             int current = 0;
             int max = 0;
 
-            var Reservations = await _reservationRepository.GetAllAsync(resource.Id, reservation.StartDate, reservation.EndDate, new[] { ReservationStatus.Confirmed, ReservationStatus.Pending });
+            var Reservations = await _reservationRepository.GetAllAsync(resource.Id, reservation.StartDate, reservation.EndDate, new[] { ReservationStatus.Confirmed, ReservationStatus.Pending }, Guid.Parse(userId));
             var allReservations = Reservations.Append(reservation);
 
             var events = allReservations.SelectMany(r => new[]
