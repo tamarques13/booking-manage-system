@@ -51,7 +51,7 @@ namespace BookingSystem.Controllers
             return Ok(resourceDto);
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetResources()
         {
