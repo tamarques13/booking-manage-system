@@ -12,7 +12,7 @@ namespace BookingSystem.Services
     /// Application service responsible for managing Resource lifecycle.
     /// Coordinates repository access and delegates business rules to the domain model.
     /// </summary>
-    /// 
+    
     public class ResourceService(IResourceRepository resourceRepository) : IResourceService
     {
         private readonly IResourceRepository _resourceRepository = resourceRepository;
