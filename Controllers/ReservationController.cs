@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using BookingSystem.DTOs;
 using BookingSystem.Services.Interfaces;
@@ -11,6 +12,7 @@ namespace BookingSystem.Controllers
     {
         private readonly IReservationService _reservationService = reservationService;
 
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> CreateReservation(CreateReservationDto dto)
         {
@@ -18,6 +20,7 @@ namespace BookingSystem.Controllers
             return CreatedAtAction(nameof(GetReservationById), new { id = reservationDto.Id }, reservationDto);
         }
 
+        [Authorize]
         [HttpPatch("{id}/cancel")]
         public async Task<IActionResult> CancelReservation(Guid id)
         {
@@ -25,6 +28,7 @@ namespace BookingSystem.Controllers
             return Ok(reservationDto);
         }
 
+        [Authorize]
         [HttpPatch("{id}/date")]
         public async Task<IActionResult> ExtendReservation(Guid id, DateTime newStartDate, DateTime newEndDate)
         {
@@ -32,6 +36,7 @@ namespace BookingSystem.Controllers
             return Ok(reservationDto);
         }
 
+        [Authorize]
         [HttpPatch("{id}/guest")]
         public async Task<IActionResult> ChangeNumberOfPeople(Guid id, int newNumberOfPeople)
         {
@@ -39,6 +44,7 @@ namespace BookingSystem.Controllers
             return Ok(reservationDto);
         }
 
+        [Authorize]
         [HttpPatch("{id}/resource")]
         public async Task<IActionResult> UpdateResource(Guid id, Guid resourceId)
         {
@@ -46,6 +52,7 @@ namespace BookingSystem.Controllers
             return Ok(reservationDto);
         }
 
+        [Authorize]
         [HttpPatch("{id}/confirm")]
         public async Task<IActionResult> ConfirmReservation(Guid id)
         {
@@ -53,13 +60,15 @@ namespace BookingSystem.Controllers
             return Ok(reservationDto);
         }
 
+        [Authorize]
         [HttpGet]
-        public async Task<IActionResult> GetReservations(Guid? ResourceId, DateTime? StartTime, DateTime? EndTime, [FromQuery]ReservationStatus[] status)
+        public async Task<IActionResult> GetReservations(Guid? ResourceId, DateTime? StartTime, DateTime? EndTime, [FromQuery] ReservationStatus[] status)
         {
             var reservations = await _reservationService.GetReservationsAsync(ResourceId, StartTime, EndTime, status);
             return Ok(reservations);
         }
 
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetReservationById(Guid id)
         {
@@ -67,6 +76,7 @@ namespace BookingSystem.Controllers
             return Ok(reservationDto);
         }
 
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteReservation(Guid id)
         {
