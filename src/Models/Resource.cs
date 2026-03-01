@@ -18,6 +18,8 @@ namespace BookingSystem.Models
         public Resource(string name, int capacity, ResourceType type, TimeOnly openingTime, TimeOnly closingTime, bool weekends)
         {
             if (Status != ResourceStatus.Available) throw new DomainException("Resource is not available for reservation.");
+            
+            if (closingTime == TimeOnly.FromTimeSpan(TimeSpan.Zero)) throw new DomainException("Closing time cannot be 00:00:00.");
 
             Id = Guid.NewGuid();
             Name = name;
@@ -36,6 +38,8 @@ namespace BookingSystem.Models
             if (string.IsNullOrWhiteSpace(name)) throw new DomainException("Name cannot be empty.");
 
             if (capacity <= 0) throw new DomainException("Capacity must be greater than zero.");
+
+            if (closingTime == TimeOnly.FromTimeSpan(TimeSpan.Zero)) throw new DomainException("Closing time cannot be 00:00:00.");
 
             Name = name;
             OpeningTime = openingTime;

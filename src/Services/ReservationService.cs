@@ -4,9 +4,7 @@ using BookingSystem.Repositories.Interfaces;
 using BookingSystem.Services.Interfaces;
 using BookingSystem.Jobs.Interface;
 using BookingSystem.Helpers;
-using BookingSystem.Jobs;
 using BookingSystem.ExceptionHelper;
-using Hangfire;
 
 namespace BookingSystem.Services
 {

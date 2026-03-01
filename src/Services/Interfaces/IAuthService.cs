@@ -1,4 +1,3 @@
-using BookingSystem.Models;
 using BookingSystem.DTOs;
 
 namespace BookingSystem.Services.Interfaces

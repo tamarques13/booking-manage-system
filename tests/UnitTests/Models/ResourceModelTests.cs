@@ -1,5 +1,6 @@
 using BookingSystem.Models;
 using BookingSystem.ExceptionHelper;
+using BookingSystem.UnitTests.Helpers;
 
 namespace BookingSystem.UnitTests.Models
 {
@@ -31,10 +32,26 @@ namespace BookingSystem.UnitTests.Models
         }
 
         [Fact]
+        public void Resource_WithZeroClosingTime_ShouldThrowDomainException()
+        {
+            // Arrange
+            var name = "Conference Room";
+            var capacity = 10;
+            var type = ResourceType.ConferenceRoom;
+            var openingTime = new TimeOnly(9, 0);
+            var closingTime = new TimeOnly(0, 0);
+            var weekends = true;
+
+            // Act & Assert
+            var exception = Assert.Throws<DomainException>(() => new Resource(name, capacity, type, openingTime, closingTime, weekends));
+            Assert.Equal("Closing time cannot be 00:00:00.", exception.Message);
+        }
+
+        [Fact]
         public void Update_WithValidInputs_ShouldUpdateResource()
         {
             // Arrange
-            var resource = new Resource("Meeting Room", 10, ResourceType.MeetingRoom, new TimeOnly(9, 0), new TimeOnly(17, 0), true);
+            var resource = CreateEntities.Resource(true);
             var newName = "Updated Room";
             var newCapacity = 20;
             var newType = ResourceType.ConferenceRoom;
@@ -53,10 +70,26 @@ namespace BookingSystem.UnitTests.Models
         }
 
         [Fact]
+        public void Update_WithZeroClosingTime_ShouldThrowDomainException()
+        {
+            // Arrange
+            var resource = CreateEntities.Resource(true);
+            var name = "Conference Room";
+            var capacity = 10;
+            var type = ResourceType.ConferenceRoom;
+            var openingTime = new TimeOnly(9, 0);
+            var closingTime = new TimeOnly(0, 0);
+
+            // Act & Assert
+            var exception = Assert.Throws<DomainException>(() => resource.Update(name, capacity, type, openingTime, closingTime));
+            Assert.Equal("Closing time cannot be 00:00:00.", exception.Message);
+        }
+
+        [Fact]
         public void Update_WhenNameIsEmpty_ShouldThrowDomainException()
         {
             // Arrange
-            var resource = new Resource("Meeting Room", 10, ResourceType.MeetingRoom, new TimeOnly(9, 0), new TimeOnly(17, 0), true);
+            var resource = CreateEntities.Resource(true);
 
             // Act & Assert
             var exception = Assert.Throws<DomainException>(() => resource.Update("", 10, ResourceType.MeetingRoom, new TimeOnly(9, 0), new TimeOnly(17, 0)));
@@ -67,7 +100,7 @@ namespace BookingSystem.UnitTests.Models
         public void Update_WhenCapacityIsNonPositive_ShouldThrowDomainException()
         {
             // Arrange
-            var resource = new Resource("Meeting Room", 10, ResourceType.MeetingRoom, new TimeOnly(9, 0), new TimeOnly(17, 0), true);
+            var resource = CreateEntities.Resource(true);
 
             // Act & Assert
             var exception = Assert.Throws<DomainException>(() => resource.Update("Meeting Room", 0, ResourceType.MeetingRoom, new TimeOnly(9, 0), new TimeOnly(17, 0)));
@@ -78,7 +111,7 @@ namespace BookingSystem.UnitTests.Models
         public void Update_WhenResourceTypeIsInvalid_ShouldThrowDomainException()
         {
             // Arrange
-            var resource = new Resource("Meeting Room", 10, ResourceType.MeetingRoom, new TimeOnly(9, 0), new TimeOnly(17, 0), true);
+            var resource = CreateEntities.Resource(true);
 
             // Act & Assert
             var exception = Assert.Throws<DomainException>(() => resource.Update("Meeting Room", 10, (ResourceType)999, new TimeOnly(9, 0), new TimeOnly(17, 0)));
@@ -89,7 +122,7 @@ namespace BookingSystem.UnitTests.Models
         public void DeactivateResource_WhenCalled_ShouldDeactivateResource()
         {
             // Arrange
-            var resource = new Resource("Meeting Room", 10, ResourceType.MeetingRoom, new TimeOnly(9, 0), new TimeOnly(17, 0), true);
+            var resource = CreateEntities.Resource(true);
 
             // Act
             resource.DeactivateResource();
@@ -102,7 +135,7 @@ namespace BookingSystem.UnitTests.Models
         public void ActivateResource_WhenCalled_ShouldActivateResource()
         {
             // Arrange
-            var resource = new Resource("Meeting Room", 10, ResourceType.MeetingRoom, new TimeOnly(9, 0), new TimeOnly(17, 0), true);
+            var resource = CreateEntities.Resource(true);
             resource.DeactivateResource();
 
             // Act
@@ -116,7 +149,7 @@ namespace BookingSystem.UnitTests.Models
         public void ActivateResource_WithAlreadyAvailable_ShouldThrowDomainException()
         {
             // Arrange
-            var resource = new Resource("Meeting Room", 10, ResourceType.MeetingRoom, new TimeOnly(9, 0), new TimeOnly(17, 0), true);
+            var resource = CreateEntities.Resource(true);
 
             // Act & Assert
             var exception = Assert.Throws<DomainException>(() => resource.ActivateResource());
@@ -127,7 +160,7 @@ namespace BookingSystem.UnitTests.Models
         public void UpdateWeekend_WhenCalled_ShouldUpdateWeekend()
         {
             // Arrange
-            var resource = new Resource("Meeting Room", 10, ResourceType.MeetingRoom, new TimeOnly(9, 0), new TimeOnly(17, 0), true);
+            var resource = CreateEntities.Resource(true);
 
             // Act
             resource.UpdateWeekend();

@@ -1,7 +1,6 @@
-using System;
 using BookingSystem.Models;
-using Xunit;
 using BookingSystem.ExceptionHelper;
+using BookingSystem.UnitTests.Helpers;
 
 namespace BookingSystem.UnitTests.Models
 {
@@ -79,7 +78,7 @@ namespace BookingSystem.UnitTests.Models
         public void ConfirmReservation_WhenCalled_ShouldSetStatusToConfirmed()
         {
             // Arrange
-            var reservation = new Reservation(DateTime.Now.AddHours(1), DateTime.Now.AddHours(2), 5, Guid.NewGuid(), Guid.NewGuid());
+            var reservation = CreateEntities.Reservation(Guid.NewGuid().ToString(), Guid.NewGuid());
 
             // Act
             reservation.ConfirmReservation();
@@ -92,7 +91,7 @@ namespace BookingSystem.UnitTests.Models
         public void CancelReservation_WhenCalled_ShouldSetStatusToCancelled()
         {
             // Arrange
-            var reservation = new Reservation(DateTime.Now.AddHours(1), DateTime.Now.AddHours(2), 5, Guid.NewGuid(), Guid.NewGuid());
+            var reservation = CreateEntities.Reservation(Guid.NewGuid().ToString(), Guid.NewGuid());
 
             // Act
             reservation.CancelReservation();
@@ -105,7 +104,7 @@ namespace BookingSystem.UnitTests.Models
         public void ExpireReservation_WhenCalled_ShouldSetStatusToExpired()
         {
             // Arrange
-            var reservation = new Reservation(DateTime.Now.AddHours(1), DateTime.Now.AddHours(2), 5, Guid.NewGuid(), Guid.NewGuid());
+            var reservation = CreateEntities.Reservation(Guid.NewGuid().ToString(), Guid.NewGuid());
 
             // Act
             reservation.ExpireReservation();
@@ -119,7 +118,7 @@ namespace BookingSystem.UnitTests.Models
         public void UpdateDates_WhenCalled_ShouldUpdateStartAndEndDates()
         {
             // Arrange
-            var reservation = new Reservation(DateTime.Now.AddHours(1), DateTime.Now.AddHours(2), 5, Guid.NewGuid(), Guid.NewGuid());
+            var reservation = CreateEntities.Reservation(Guid.NewGuid().ToString(), Guid.NewGuid());
             var newStartDate = DateTime.Now.AddHours(3);
             var newEndDate = DateTime.Now.AddHours(4);
 
@@ -135,7 +134,7 @@ namespace BookingSystem.UnitTests.Models
         public void UpdateDates_WhenStatusIsNotPeding_ShouldThrowDomainException()
         {
             // Arrange
-            var reservation = new Reservation(DateTime.Now.AddHours(1), DateTime.Now.AddHours(2), 5, Guid.NewGuid(), Guid.NewGuid());
+            var reservation = CreateEntities.Reservation(Guid.NewGuid().ToString(), Guid.NewGuid());
             var newStartDate = DateTime.Now.AddHours(3);
             var newEndDate = DateTime.Now.AddHours(2);
             reservation.ConfirmReservation();
@@ -149,7 +148,7 @@ namespace BookingSystem.UnitTests.Models
         public void UpdateDates_WhenStartDateIsBeforeCurrentTime_ShouldThrowDomainException()
         {
             // Arrange
-            var reservation = new Reservation(DateTime.Now.AddHours(1), DateTime.Now.AddHours(2), 5, Guid.NewGuid(), Guid.NewGuid());
+            var reservation = CreateEntities.Reservation(Guid.NewGuid().ToString(), Guid.NewGuid());
             var newStartDate = DateTime.Now.AddHours(-1);
             var newEndDate = DateTime.Now.AddHours(2);
 
@@ -162,7 +161,7 @@ namespace BookingSystem.UnitTests.Models
         public void UpdateDates_WhenStartDateIsAfterEndDate_ShouldThrowDomainException()
         {
             // Arrange
-            var reservation = new Reservation(DateTime.Now.AddHours(1), DateTime.Now.AddHours(2), 5, Guid.NewGuid(), Guid.NewGuid());
+            var reservation = CreateEntities.Reservation(Guid.NewGuid().ToString(), Guid.NewGuid());
             var newStartDate = DateTime.Now.AddHours(3);
             var newEndDate = DateTime.Now.AddHours(2);
 
@@ -175,7 +174,7 @@ namespace BookingSystem.UnitTests.Models
         public void UpdateNumberOfPeople_WhenCalled_ShouldUpdateNumberOfPeople()
         {
             // Arrange
-            var reservation = new Reservation(DateTime.Now.AddHours(1), DateTime.Now.AddHours(2), 5, Guid.NewGuid(), Guid.NewGuid());
+            var reservation = CreateEntities.Reservation(Guid.NewGuid().ToString(), Guid.NewGuid());
             var newNumberOfPeople = 10;
 
             // Act
@@ -189,7 +188,7 @@ namespace BookingSystem.UnitTests.Models
         public void UpdateNumberOfPeople_ShouldThrowDomainException_WhenNumberOfPeopleIsZeroOrNegative()
         {
             // Arrange
-            var reservation = new Reservation(DateTime.Now.AddHours(1), DateTime.Now.AddHours(2), 5, Guid.NewGuid(), Guid.NewGuid());
+            var reservation = CreateEntities.Reservation(Guid.NewGuid().ToString(), Guid.NewGuid());
 
             // Act & Assert
             var exceptionZero = Assert.Throws<DomainException>(() => reservation.UpdateNumberOfPeople(0));
