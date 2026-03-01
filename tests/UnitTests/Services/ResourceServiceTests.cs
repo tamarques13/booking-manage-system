@@ -1,13 +1,10 @@
 using Moq;
-using Xunit;
 using BookingSystem.Services;
 using BookingSystem.Repositories.Interfaces;
-using BookingSystem.DTOs;
 using BookingSystem.Models;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using BookingSystem.UnitTests.Helpers;
 
-namespace BookingSystem.UnitTests
+namespace BookingSystem.UnitTests.Services
 {
     public class ResourceServiceTests
     {
@@ -24,22 +21,12 @@ namespace BookingSystem.UnitTests
         public async Task CreateResource_WithValidDto_CallsRepositoryAddMethod()
         {
             // Arrange
-            var resourceDto = new CreateResourceDto
-            {
-                Name = "New Resource",
-                Capacity = 15,
-                Type = "MeetingRoom",
-                OpeningTime = new TimeOnly(9, 0),
-                ClosingTime = new TimeOnly(17, 0),
-                Weekends = true
-            };
-
-            var resource = new Resource("New Resource", 15, ResourceType.MeetingRoom, new TimeOnly(9, 0), new TimeOnly(17, 0), true);
+            var resource = CreateEntities.ResourceDto(true);
 
             _mockResourceRepository.Setup(repo => repo.AddAsync(It.IsAny<Resource>()));
 
             // Act
-            var result = await _resourceService.CreateResourceAsync(resourceDto);
+            var result = await _resourceService.CreateResourceAsync(resource);
 
             // Assert
             Assert.NotNull(result);
@@ -51,26 +38,17 @@ namespace BookingSystem.UnitTests
         public async Task UpdateResourceAsync_WithValidDto_UpdatesResource()
         {
             // Arrange
-            var resourceId = Guid.NewGuid();
-            var resource = new Resource("Old Resource", 10, ResourceType.MeetingRoom, new TimeOnly(9, 0), new TimeOnly(17, 0), true);
-            var updateDto = new CreateResourceDto
-            {
-                Name = "Updated Resource",
-                Capacity = 20,
-                Type = "ConferenceRoom",
-                OpeningTime = new TimeOnly(8, 0),
-                ClosingTime = new TimeOnly(18, 0),
-                Weekends = false
-            };
+            var resource = CreateEntities.Resource(true);
+            var newResource = CreateEntities.ResourceDto(false);
 
-            _mockResourceRepository.Setup(repo => repo.GetByIdAsync(resourceId)).ReturnsAsync(resource);
+            _mockResourceRepository.Setup(repo => repo.GetByIdAsync(resource.Id)).ReturnsAsync(resource);
 
             // Act
-            var result = await _resourceService.UpdateResourceAsync(resourceId, updateDto);
+            var result = await _resourceService.UpdateResourceAsync(resource.Id, newResource);
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal("Updated Resource", result.Name);
+            Assert.Equal("New Resource", result.Name);
             _mockResourceRepository.Verify(repo => repo.UpdateAsync(resource), Times.Once);
         }
 
@@ -78,15 +56,14 @@ namespace BookingSystem.UnitTests
         public async Task ActivateResourceAsync_WithValidId_ActivatesResource()
         {
             // Arrange
-            var resourceId = Guid.NewGuid();
-            var resource = new Resource("Resource", 10, ResourceType.MeetingRoom, new TimeOnly(9, 0), new TimeOnly(17, 0), false);
+            var resource = CreateEntities.Resource(true);
 
-            _mockResourceRepository.Setup(repo => repo.GetByIdAsync(resourceId)).ReturnsAsync(resource);
+            _mockResourceRepository.Setup(repo => repo.GetByIdAsync(resource.Id)).ReturnsAsync(resource);
 
             // Act
-            await _resourceService.DeactivateResourceAsync(resourceId);
+            await _resourceService.DeactivateResourceAsync(resource.Id);
 
-            var result = await _resourceService.ActivateResourceAsync(resourceId);
+            var result = await _resourceService.ActivateResourceAsync(resource.Id);
 
             // Assert
             Assert.NotNull(result);
@@ -98,13 +75,12 @@ namespace BookingSystem.UnitTests
         public async Task DeactivateResourceAsync_WithValidId_DeactivatesResource()
         {
             // Arrange
-            var resourceId = Guid.NewGuid();
-            var resource = new Resource("Resource", 10, ResourceType.MeetingRoom, new TimeOnly(9, 0), new TimeOnly(17, 0), true);
+            var resource = CreateEntities.Resource(true);
 
-            _mockResourceRepository.Setup(repo => repo.GetByIdAsync(resourceId)).ReturnsAsync(resource);
+            _mockResourceRepository.Setup(repo => repo.GetByIdAsync(resource.Id)).ReturnsAsync(resource);
 
             // Act
-            var result = await _resourceService.DeactivateResourceAsync(resourceId);
+            var result = await _resourceService.DeactivateResourceAsync(resource.Id);
 
             // Assert
             Assert.NotNull(result);
@@ -116,13 +92,12 @@ namespace BookingSystem.UnitTests
         public async Task UpdateWeekendAsync_WithValidId_TogglesWeekendAvailability()
         {
             // Arrange
-            var resourceId = Guid.NewGuid();
-            var resource = new Resource("Resource", 10, ResourceType.MeetingRoom, new TimeOnly(9, 0), new TimeOnly(17, 0), true);
+            var resource = CreateEntities.Resource(true);
 
-            _mockResourceRepository.Setup(repo => repo.GetByIdAsync(resourceId)).ReturnsAsync(resource);
+            _mockResourceRepository.Setup(repo => repo.GetByIdAsync(resource.Id)).ReturnsAsync(resource);
 
             // Act
-            var result = await _resourceService.UpdateWeekendAsync(resourceId);
+            var result = await _resourceService.UpdateWeekendAsync(resource.Id);
 
             // Assert
             Assert.NotNull(result);
@@ -136,8 +111,8 @@ namespace BookingSystem.UnitTests
             // Arrange
             var resources = new List<Resource>
             {
-                new("Resource 1", 10, ResourceType.MeetingRoom, new TimeOnly(9, 0), new TimeOnly(17, 0), true),
-                new("Resource 2", 20, ResourceType.ConferenceRoom, new TimeOnly(8, 0), new TimeOnly(18, 0), false)
+                CreateEntities.Resource(true),
+                CreateEntities.Resource(true),
             };
 
             _mockResourceRepository.Setup(repo => repo.GetAllAsync()).ReturnsAsync(resources);
@@ -155,32 +130,30 @@ namespace BookingSystem.UnitTests
         public async Task GetResourceByIdAsync_WithValidId_ReturnsResource()
         {
             // Arrange
-            var resourceId = Guid.NewGuid();
-            var resource = new Resource($"Resource {resourceId}", 10, ResourceType.MeetingRoom, new TimeOnly(9, 0), new TimeOnly(17, 0), true);
+            var resource = CreateEntities.Resource(true);
 
-            _mockResourceRepository.Setup(repo => repo.GetByIdAsync(resourceId)).ReturnsAsync(resource);
+            _mockResourceRepository.Setup(repo => repo.GetByIdAsync(resource.Id)).ReturnsAsync(resource);
 
             // Act
-            var result = await _resourceService.GetResourceByIdAsync(resourceId);
+            var result = await _resourceService.GetResourceByIdAsync(resource.Id);
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal($"Resource {resourceId}", result.Name);
+            Assert.Equal("Test Resource", result.Name);
             Assert.Equal(resource.Capacity, result.Capacity);
-            _mockResourceRepository.Verify(repo => repo.GetByIdAsync(resourceId), Times.Once);
+            _mockResourceRepository.Verify(repo => repo.GetByIdAsync(resource.Id), Times.Once);
         }
 
         [Fact]
         public async Task DeleteResourceAsync_WithValidId_DeletesResource()
         {
             // Arrange
-            var resourceId = Guid.NewGuid();
-            var resource = new Resource("Resource", 10, ResourceType.MeetingRoom, new TimeOnly(9, 0), new TimeOnly(17, 0), true);
+            var resource = CreateEntities.Resource(true);
 
-            _mockResourceRepository.Setup(repo => repo.GetByIdAsync(resourceId)).ReturnsAsync(resource);
+            _mockResourceRepository.Setup(repo => repo.GetByIdAsync(resource.Id)).ReturnsAsync(resource);
 
             // Act
-            await _resourceService.DeleteResourceAsync(resourceId);
+            await _resourceService.DeleteResourceAsync(resource.Id);
 
             // Assert
             _mockResourceRepository.Verify(repo => repo.DeleteAsync(resource), Times.Once);

@@ -1,14 +1,12 @@
 using Moq;
-using Xunit;
 using BookingSystem.Repositories.Interfaces;
 using BookingSystem.Services;
-using BookingSystem.DTOs;
 using BookingSystem.Models;
-using System.Linq.Expressions;
 using BookingSystem.Jobs.Interface;
-using BookingSystem.Jobs;
+using BookingSystem.ExceptionHelper;
+using BookingSystem.UnitTests.Helpers;
 
-namespace BookingSystem.UnitTests
+namespace BookingSystem.UnitTests.Services
 {
     public class ReservationServiceTests
     {
@@ -29,19 +27,9 @@ namespace BookingSystem.UnitTests
         public async Task CreateReservationAsync_WithValidDto_CreatesReservation()
         {
             // Arrange
-            var year = DateTime.Now.Year + 2;
-
             var userId = Guid.NewGuid().ToString();
-            var resource = new Resource("Meeting Room", 10, ResourceType.MeetingRoom, new TimeOnly(9, 0), new TimeOnly(17, 0), true);
-            var reservationDto = new CreateReservationDto
-            {
-                StartDate = new DateTime(year, 3, 5, 12, 0, 0),
-                EndDate = new DateTime(year, 3, 5, 13, 0, 0),
-                NumberOfPeople = 5,
-                ResourceId = resource.Id
-            };
-
-            var reservation = new Reservation(reservationDto.StartDate, reservationDto.EndDate, reservationDto.NumberOfPeople, resource.Id, Guid.Parse(userId));
+            var resource = CreateEntities.Resource(true);
+            var reservationDto = CreateEntities.ReservationDTO(resource.Id);
 
             _mockResourceRepository.Setup(repo => repo.GetByIdAsync(resource.Id)).ReturnsAsync(resource);
             _mockReservationRepository.Setup(repo => repo.GetAllAsync(resource.Id, reservationDto.StartDate, reservationDto.EndDate, new[] { ReservationStatus.Confirmed, ReservationStatus.Pending }, Guid.Parse(userId))).ReturnsAsync(new List<Reservation>());
@@ -53,8 +41,75 @@ namespace BookingSystem.UnitTests
             // Assert
             Assert.NotNull(result);
             Assert.Equal(resource.Id, result.Resource.ResourceId);
+
             _mockReservationRepository.Verify(repo => repo.AddAsync(It.IsAny<Reservation>()), Times.Once);
             _mockJobScheduler.Verify(x => x.ScheduleReservationExpiration(It.IsAny<Guid>(), It.IsAny<string>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task CreateReservationAsync_WithOutsideHours_ShouldThrowDomainException()
+        {
+            // Arrange
+            var userId = Guid.NewGuid().ToString();
+            var resource = CreateEntities.Resource(true);
+            var reservationDto = CreateEntities.OutsideHoursReservationDTO(resource.Id);
+
+            _mockResourceRepository.Setup(repo => repo.GetByIdAsync(resource.Id)).ReturnsAsync(resource);
+
+            // Assert & Act
+            var exception = await Assert.ThrowsAsync<DomainException>(() => _reservationService.CreateReservationAsync(reservationDto, userId));
+            Assert.Equal("Reservation must be within Resource Hours", exception.Message);
+        }
+
+        [Fact]
+        public async Task CreateReservationAsync_WithWeekendNotAllowed_ShouldThrowDomainException()
+        {
+            // Arrange
+            var userId = Guid.NewGuid().ToString();
+            var resource = CreateEntities.Resource(false);
+            var reservationDto = CreateEntities.WeekendReservationDTO(resource.Id);
+
+            _mockResourceRepository.Setup(repo => repo.GetByIdAsync(resource.Id)).ReturnsAsync(resource);
+
+            // Assert & Act
+            var exception = await Assert.ThrowsAsync<DomainException>(() => _reservationService.CreateReservationAsync(reservationDto, userId));
+            Assert.Equal("It's not allowed reservations on weekends", exception.Message);
+        }
+
+        [Fact]
+        public async Task CreateReservationAsync_WithCapacityOverflow_ShouldThrowDomainException()
+        {
+            // Arrange
+            var userId = Guid.NewGuid().ToString();
+            var resource = CreateEntities.Resource(true);
+            var reservationDto = CreateEntities.OverCapacityReservationDTO(resource.Id);
+
+            _mockResourceRepository.Setup(repo => repo.GetByIdAsync(resource.Id)).ReturnsAsync(resource);
+            _mockReservationRepository.Setup(repo => repo.GetAllAsync(resource.Id, reservationDto.StartDate, reservationDto.EndDate, new[] { ReservationStatus.Confirmed, ReservationStatus.Pending }, Guid.Parse(userId))).ReturnsAsync(new List<Reservation>());
+
+
+            // Assert & Act
+            var exception = await Assert.ThrowsAsync<DomainException>(() => _reservationService.CreateReservationAsync(reservationDto, userId));
+            Assert.Equal($"{resource.Name} has reached capacity limit.", exception.Message);
+        }
+
+
+        [Fact]
+        public async Task CreateReservationAsync_WithInactiveResource_ShouldThrowDomainException()
+        {
+            // Arrange
+            var userId = Guid.NewGuid().ToString();
+            var resource = CreateEntities.Resource(true);
+            var reservationDto = CreateEntities.ReservationDTO(resource.Id);
+
+
+            resource.DeactivateResource();
+
+            _mockResourceRepository.Setup(repo => repo.GetByIdAsync(resource.Id)).ReturnsAsync(resource);
+
+            // Assert & Act
+            var exception = await Assert.ThrowsAsync<DomainException>(() => _reservationService.CreateReservationAsync(reservationDto, userId));
+            Assert.Equal("Resource is Unavailable", exception.Message);
         }
 
         [Fact]
@@ -62,17 +117,14 @@ namespace BookingSystem.UnitTests
         {
             // Arrange
             var userId = Guid.NewGuid().ToString();
-            var reservationId = Guid.NewGuid();
-            var resourceId = Guid.NewGuid();
+            var resource = CreateEntities.Resource(true);
+            var reservation = CreateEntities.Reservation(userId, resource.Id);
 
-            var resource = new Resource("Meeting Room", 10, ResourceType.MeetingRoom, new TimeOnly(9, 0), new TimeOnly(17, 0), true);
-            var reservation = new Reservation(DateTime.Now.AddHours(1), DateTime.Now.AddHours(2), 5, resourceId, Guid.Parse(userId));
-
-            _mockReservationRepository.Setup(repo => repo.GetByIdAsync(reservationId, Guid.Parse(userId))).ReturnsAsync(reservation);
-            _mockResourceRepository.Setup(repo => repo.GetByIdAsync(resourceId)).ReturnsAsync(resource);
+            _mockReservationRepository.Setup(repo => repo.GetByIdAsync(reservation.Id, Guid.Parse(userId))).ReturnsAsync(reservation);
+            _mockResourceRepository.Setup(repo => repo.GetByIdAsync(reservation.ResourceId)).ReturnsAsync(resource);
 
             // Act
-            var result = await _reservationService.CancelReservationAsync(reservationId, userId);
+            var result = await _reservationService.CancelReservationAsync(reservation.Id, userId);
 
             // Assert
             Assert.NotNull(result);
@@ -85,17 +137,14 @@ namespace BookingSystem.UnitTests
         {
             // Arrange
             var userId = Guid.NewGuid().ToString();
-            var reservationId = Guid.NewGuid();
-            var resourceId = Guid.NewGuid();
+            var resource = CreateEntities.Resource(true);
+            var reservation = CreateEntities.Reservation(userId, resource.Id);
 
-            var resource = new Resource("Meeting Room", 10, ResourceType.MeetingRoom, new TimeOnly(9, 0), new TimeOnly(17, 0), true);
-            var reservation = new Reservation(DateTime.Now.AddHours(1), DateTime.Now.AddHours(2), 5, resourceId, Guid.Parse(userId));
-
-            _mockReservationRepository.Setup(repo => repo.GetByIdAsync(reservationId, Guid.Parse(userId))).ReturnsAsync(reservation);
-            _mockResourceRepository.Setup(repo => repo.GetByIdAsync(resourceId)).ReturnsAsync(resource);
+            _mockReservationRepository.Setup(repo => repo.GetByIdAsync(reservation.Id, Guid.Parse(userId))).ReturnsAsync(reservation);
+            _mockResourceRepository.Setup(repo => repo.GetByIdAsync(reservation.ResourceId)).ReturnsAsync(resource);
 
             // Act
-            var result = await _reservationService.ConfirmReservationAsync(reservationId, userId);
+            var result = await _reservationService.ConfirmReservationAsync(reservation.Id, userId);
 
             // Assert
             Assert.NotNull(result);
@@ -107,48 +156,57 @@ namespace BookingSystem.UnitTests
         public async Task UpdateResourceAsync_WithValidData_UpdatesResource()
         {
             // Arrange
-            var year = DateTime.Now.Year + 2;
-
             var userId = Guid.NewGuid().ToString();
-            var reservationId = Guid.NewGuid();
-            var newResourceId = Guid.NewGuid();
+            var resource = CreateEntities.Resource(true);
+            var reservation = CreateEntities.Reservation(userId, Guid.NewGuid());
 
-            var reservation = new Reservation(new DateTime(year, 3, 5, 12, 0, 0), new DateTime(year, 3, 5, 13, 0, 0), 5, Guid.NewGuid(), Guid.Parse(userId));
-            var newResource = new Resource("Conference Room", 20, ResourceType.ConferenceRoom, new TimeOnly(8, 0), new TimeOnly(18, 0), true);
-
-            _mockReservationRepository.Setup(repo => repo.GetByIdAsync(reservationId, Guid.Parse(userId))).ReturnsAsync(reservation);
-            _mockResourceRepository.Setup(repo => repo.GetByIdAsync(newResource.Id)).ReturnsAsync(newResource);
-            _mockReservationRepository.Setup(repo => repo.GetAllAsync(newResource.Id, reservation.StartDate, reservation.EndDate, new[] { ReservationStatus.Confirmed, ReservationStatus.Pending }, Guid.Parse(userId))).ReturnsAsync(new List<Reservation>());
+            _mockReservationRepository.Setup(repo => repo.GetByIdAsync(reservation.Id, Guid.Parse(userId))).ReturnsAsync(reservation);
+            _mockResourceRepository.Setup(repo => repo.GetByIdAsync(resource.Id)).ReturnsAsync(resource);
+            _mockReservationRepository.Setup(repo => repo.GetAllAsync(resource.Id, reservation.StartDate, reservation.EndDate, new[] { ReservationStatus.Confirmed, ReservationStatus.Pending }, Guid.Parse(userId))).ReturnsAsync(new List<Reservation>());
 
             // Act
-            var result = await _reservationService.UpdateResourceAsync(reservationId, newResource.Id, userId);
+            var result = await _reservationService.UpdateResourceAsync(reservation.Id, resource.Id, userId);
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(newResource.Id, result.Resource.ResourceId);
+            Assert.Equal(resource.Id, result.Resource.ResourceId);
             _mockReservationRepository.Verify(repo => repo.UpdateAsync(reservation), Times.Once);
+        }
+
+        [Fact]
+        public async Task UpdateResourceAsync_WithNonPendingReservation_ShouldThrowDomainException()
+        {
+            // Arrange
+            var userId = Guid.NewGuid().ToString();
+            var resource = CreateEntities.Resource(true);
+            var reservation = CreateEntities.Reservation(userId, resource.Id);
+
+            reservation.ConfirmReservation();
+
+            _mockReservationRepository.Setup(repo => repo.GetByIdAsync(reservation.Id, Guid.Parse(userId))).ReturnsAsync(reservation);
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<DomainException>(() => _reservationService.UpdateResourceAsync(reservation.Id, resource.Id, userId));
+            Assert.Equal("Only pending reservations can change the number of people.", exception.Message);
         }
 
         [Fact]
         public async Task UpdateDateAsync_WithValidData_UpdatesDates()
         {
             // Arrange
-            var year = DateTime.Now.Year + 2;
-
             var userId = Guid.NewGuid().ToString();
-            var reservationId = Guid.NewGuid();
-            var newStartDate = new DateTime(year, 3, 5, 11, 0, 0);
-            var newEndDate = new DateTime(year, 3, 5, 12, 0, 0);
+            var resource = CreateEntities.Resource(true);
+            var reservation = CreateEntities.Reservation(userId, resource.Id);
 
-            var reservation = new Reservation(new DateTime(year, 3, 5, 14, 0, 0), new DateTime(year, 3, 5, 15, 0, 0), 5, Guid.NewGuid(), Guid.Parse(userId));
-            var resource = new Resource("Conference Room", 20, ResourceType.ConferenceRoom, new TimeOnly(8, 0), new TimeOnly(18, 0), true);
+            var newStartDate = Utils.FutureDate(14);
+            var newEndDate = Utils.FutureDate(15);
 
-            _mockReservationRepository.Setup(repo => repo.GetByIdAsync(reservationId, Guid.Parse(userId))).ReturnsAsync(reservation);
+            _mockReservationRepository.Setup(repo => repo.GetByIdAsync(reservation.Id, Guid.Parse(userId))).ReturnsAsync(reservation);
             _mockResourceRepository.Setup(repo => repo.GetByIdAsync(reservation.ResourceId)).ReturnsAsync(resource);
-            _mockReservationRepository.Setup(repo => repo.GetAllAsync(resource.Id, newStartDate, newEndDate, new[] { ReservationStatus.Confirmed, ReservationStatus.Pending }, Guid.Parse(userId))).ReturnsAsync(new List<Reservation>());
+            _mockReservationRepository.Setup(repo => repo.GetAllAsync(reservation.ResourceId, newStartDate, newEndDate, new[] { ReservationStatus.Confirmed, ReservationStatus.Pending }, Guid.Parse(userId))).ReturnsAsync(new List<Reservation>());
 
             // Act
-            var result = await _reservationService.UpdateDateAsync(reservationId, newStartDate, newEndDate, userId);
+            var result = await _reservationService.UpdateDateAsync(reservation.Id, newStartDate, newEndDate, userId);
 
             // Assert
             Assert.NotNull(result);
@@ -161,21 +219,18 @@ namespace BookingSystem.UnitTests
         public async Task UpdateNumberOfPeopleAsync_WithValidData_UpdatesNumberOfPeople()
         {
             // Arrange
-            var year = DateTime.Now.Year + 2;
-
             var userId = Guid.NewGuid().ToString();
-            var reservationId = Guid.NewGuid();
+            var resource = CreateEntities.Resource(true);
+            var reservation = CreateEntities.Reservation(userId, resource.Id);
+
             var newNumberOfPeople = 10;
 
-            var reservation = new Reservation(new DateTime(year, 3, 5, 12, 0, 0), new DateTime(year, 3, 5, 13, 0, 0), 5, Guid.NewGuid(), Guid.Parse(userId));
-            var resource = new Resource("Conference Room", 20, ResourceType.ConferenceRoom, new TimeOnly(8, 0), new TimeOnly(18, 0), true);
-
-            _mockReservationRepository.Setup(repo => repo.GetByIdAsync(reservationId, Guid.Parse(userId))).ReturnsAsync(reservation);
+            _mockReservationRepository.Setup(repo => repo.GetByIdAsync(reservation.Id, Guid.Parse(userId))).ReturnsAsync(reservation);
             _mockResourceRepository.Setup(repo => repo.GetByIdAsync(reservation.ResourceId)).ReturnsAsync(resource);
             _mockReservationRepository.Setup(repo => repo.GetAllAsync(resource.Id, reservation.StartDate, reservation.EndDate, new[] { ReservationStatus.Confirmed, ReservationStatus.Pending }, Guid.Parse(userId))).ReturnsAsync(new List<Reservation>());
 
             // Act
-            var result = await _reservationService.UpdateNumberOfPeopleAsync(reservationId, newNumberOfPeople, userId);
+            var result = await _reservationService.UpdateNumberOfPeopleAsync(reservation.Id, newNumberOfPeople, userId);
 
             // Assert
             Assert.NotNull(result);
@@ -189,12 +244,11 @@ namespace BookingSystem.UnitTests
             // Arrange
             var userId = Guid.NewGuid().ToString();
             var startTime = DateTime.Now.AddHours(1);
-            var endTime = DateTime.Now.AddDays(1);
+            var endTime = DateTime.Now.AddHours(2);
             var status = new[] { ReservationStatus.Confirmed };
 
-            var resources = new List<Resource> { new("Resource 1", 10, ResourceType.MeetingRoom, new TimeOnly(9, 0), new TimeOnly(17, 0), true) };
-            var reservations = new List<Reservation> { new(startTime, endTime, 5, resources[0].Id, Guid.Parse(userId)) };
-
+            var resources = new List<Resource> { CreateEntities.Resource(true) };
+            var reservations = new List<Reservation> { CreateEntities.Reservation(userId, resources[0].Id) };
             var resourceIds = reservations.Select(r => r.ResourceId).Distinct().ToList();
 
             _mockReservationRepository.Setup(repo => repo.GetAllAsync(resources[0].Id, startTime, endTime, status, Guid.Parse(userId))).ReturnsAsync(reservations);
@@ -214,16 +268,14 @@ namespace BookingSystem.UnitTests
         {
             // Arrange
             var userId = Guid.NewGuid().ToString();
-            var reservationId = Guid.NewGuid();
+            var resource = CreateEntities.Resource(true);
+            var reservation = CreateEntities.Reservation(userId, resource.Id);
 
-            var reservation = new Reservation(DateTime.Now.AddHours(1), DateTime.Now.AddHours(2), 5, Guid.NewGuid(), Guid.Parse(userId));
-            var resource = new Resource("Resource 1", 10, ResourceType.MeetingRoom, new TimeOnly(9, 0), new TimeOnly(17, 0), true);
-
-            _mockReservationRepository.Setup(repo => repo.GetByIdAsync(reservationId, Guid.Parse(userId))).ReturnsAsync(reservation);
+            _mockReservationRepository.Setup(repo => repo.GetByIdAsync(reservation.Id, Guid.Parse(userId))).ReturnsAsync(reservation);
             _mockResourceRepository.Setup(repo => repo.GetByIdAsync(reservation.ResourceId)).ReturnsAsync(resource);
 
             // Act
-            var result = await _reservationService.GetReservationByIdAsync(reservationId, userId);
+            var result = await _reservationService.GetReservationByIdAsync(reservation.Id, userId);
 
             // Assert
             Assert.NotNull(result);
@@ -235,15 +287,13 @@ namespace BookingSystem.UnitTests
         {
             // Arrange
             var userId = Guid.NewGuid().ToString();
-            var reservationId = Guid.NewGuid();
+            var reservation = CreateEntities.Reservation(userId, Guid.NewGuid());
 
-            var reservation = new Reservation(DateTime.Now.AddHours(1), DateTime.Now.AddHours(2), 5, Guid.NewGuid(), Guid.Parse(userId));
-
-            _mockReservationRepository.Setup(repo => repo.GetByIdAsync(reservationId, Guid.Parse(userId))).ReturnsAsync(reservation);
+            _mockReservationRepository.Setup(repo => repo.GetByIdAsync(reservation.Id, Guid.Parse(userId))).ReturnsAsync(reservation);
             _mockReservationRepository.Setup(repo => repo.DeleteAsync(reservation));
 
             // Act
-            await _reservationService.DeleteReservationAsync(reservationId, userId);
+            await _reservationService.DeleteReservationAsync(reservation.Id, userId);
 
             // Assert
             _mockReservationRepository.Verify(repo => repo.DeleteAsync(reservation), Times.Once);

@@ -1,15 +1,11 @@
-using System;
-using System.Threading.Tasks;
-using BookingSystem.DTOs;
-using BookingSystem.Models;
-using BookingSystem.Security;
-using Xunit;
 using Moq;
+using BookingSystem.Models;
 using BookingSystem.Repositories.Interfaces;
 using BookingSystem.Services;
 using BookingSystem.ExceptionHelper;
+using BookingSystem.UnitTests.Helpers;
 
-namespace BookingSystem.UnitTests
+namespace BookingSystem.UnitTests.Services
 {
     public class AuthServiceTests
     {
@@ -31,19 +27,12 @@ namespace BookingSystem.UnitTests
         public async Task CreateUser_WithValidDto_ShouldCreateUser()
         {
             // Arrange
-            var dto = new CreateUserDto
-            {
-                Email = "test@example.com",
-                Password = "password123",
-                FirstName = "John",
-                LastName = "Doe",
-                Role = "User"
-            };
+            var user = CreateEntities.RegisterUserDto();
 
-            _mockAuthRepository.Setup(repo => repo.GetByEmailAsync(dto.Email)).ReturnsAsync((User?)null);
+            _mockAuthRepository.Setup(repo => repo.GetByEmailAsync(user.Email)).ReturnsAsync((User?)null);
 
             // Act
-            var result = await _authService.CreateUser(dto);
+            var result = await _authService.CreateUser(user);
 
             // Assert
             _mockAuthRepository.Verify(repo => repo.AddAsync(It.IsAny<User>()), Times.Once);
@@ -55,36 +44,20 @@ namespace BookingSystem.UnitTests
         public async Task CreateUser_WhenEmailIsAlreadyRegistered_ShouldThrowDomainException()
         {
             // Arrange
-            var dto = new CreateUserDto
-            {
-                Email = "test@example.com",
-                Password = "password123",
-                FirstName = "John",
-                LastName = "Doe",
-                Role = "User"
-            };
+            var user = CreateEntities.RegisterUserDto();
 
-            _mockAuthRepository.Setup(repo => repo.GetByEmailAsync(dto.Email)).ReturnsAsync(new User());
+            _mockAuthRepository.Setup(repo => repo.GetByEmailAsync(user.Email)).ReturnsAsync(new User());
 
             // Act & Assert
-            await Assert.ThrowsAsync<DomainException>(() => _authService.CreateUser(dto));
+            await Assert.ThrowsAsync<DomainException>(() => _authService.CreateUser(user));
         }
 
         [Fact]
         public async Task LoginUser_WhenCredentialsAreValid_ShouldReturnToken()
         {
             // Arrange
-            var dto = new LoginUserDto
-            {
-                Email = "test@example.com",
-                Password = "password123"
-            };
-
-            var user = new User
-            {
-                Email = dto.Email,
-                Password = PasswordHasher.HashPassword(dto.Password)
-            };
+            var dto = CreateEntities.LoginUserDto();
+            var user = CreateEntities.User(dto);
 
             _mockAuthRepository.Setup(repo => repo.GetByEmailAsync(dto.Email)).ReturnsAsync(user);
 
@@ -100,11 +73,7 @@ namespace BookingSystem.UnitTests
         public async Task LoginUser_WhenUserDoesNotExist_ShouldThrowKeyNotFoundException()
         {
             // Arrange
-            var dto = new LoginUserDto
-            {
-                Email = "nonexistent@example.com",
-                Password = "password123"
-            };
+            var dto = CreateEntities.LoginUserDto();
 
             _mockAuthRepository.Setup(repo => repo.GetByEmailAsync(dto.Email)).ReturnsAsync((User?)null);
 
@@ -116,17 +85,8 @@ namespace BookingSystem.UnitTests
         public async Task LoginUser_WhenPasswordIsInvalid_ShouldThrowUnauthorizedAccessException()
         {
             // Arrange
-            var dto = new LoginUserDto
-            {
-                Email = "test@example.com",
-                Password = "wrongpassword"
-            };
-
-            var user = new User
-            {
-                Email = dto.Email,
-                Password = PasswordHasher.HashPassword("correctpassword")
-            };
+            var dto = CreateEntities.LoginUserDto();
+            var user = CreateEntities.WrongUser(dto);
 
             _mockAuthRepository.Setup(repo => repo.GetByEmailAsync(dto.Email)).ReturnsAsync(user);
 
