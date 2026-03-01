@@ -79,7 +79,6 @@ namespace BookingSystem.UnitTests.Models
             var type = ResourceType.ConferenceRoom;
             var openingTime = new TimeOnly(9, 0);
             var closingTime = new TimeOnly(0, 0);
-            var weekends = true;
 
             // Act & Assert
             var exception = Assert.Throws<DomainException>(() => resource.Update(name, capacity, type, openingTime, closingTime));
