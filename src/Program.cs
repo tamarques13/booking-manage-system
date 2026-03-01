@@ -9,6 +9,7 @@ using BookingSystem.Repositories.Interfaces;
 using BookingSystem.Services;
 using BookingSystem.Repositories;
 using BookingSystem.Data;
+using BookingSystem.Jobs.Interface;
 using BookingSystem.Jobs;
 using BookingSystem.Middleware;
 
@@ -31,7 +32,7 @@ builder.Services.AddScoped<IResourceService, ResourceService>();
 builder.Services.AddScoped<IReservationService, ReservationService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
-builder.Services.AddScoped<ReservationJob>();
+builder.Services.AddScoped<IJobScheduler, HangfireJobScheduler>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>

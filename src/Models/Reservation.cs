@@ -5,7 +5,7 @@ namespace BookingSystem.Models
     public enum ReservationStatus { Pending, Confirmed, Cancelled, Completed, Expired }
     public class Reservation
     {
-        protected Reservation() { }
+        public Reservation() { }
 
         public Guid Id { get; set; }
         public DateTime StartDate { get; set; }
