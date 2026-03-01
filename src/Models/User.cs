@@ -1,4 +1,5 @@
 using BookingSystem.ExceptionHelper;
+using Microsoft.IdentityModel.Tokens;
 
 namespace BookingSystem.Models
 {
@@ -15,6 +16,11 @@ namespace BookingSystem.Models
 
         public User(string email, string passwordHash, string firstName, string lastName, UserRoles role)
         {
+            if (string.IsNullOrEmpty(email)) throw new DomainException("User must have an Email");
+            if (string.IsNullOrEmpty(passwordHash)) throw new DomainException("User must have an Password");
+            if (string.IsNullOrEmpty(firstName)) throw new DomainException("User must have an FirstName");
+            if (string.IsNullOrEmpty(lastName)) throw new DomainException("User must have an LastName");
+
             Id = Guid.NewGuid();
             Email = email;
             Password = passwordHash;

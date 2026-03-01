@@ -93,7 +93,6 @@ namespace BookingSystem.UnitTests.Services
             Assert.Equal($"{resource.Name} has reached capacity limit.", exception.Message);
         }
 
-
         [Fact]
         public async Task CreateReservationAsync_WithInactiveResource_ShouldThrowDomainException()
         {
@@ -110,6 +109,49 @@ namespace BookingSystem.UnitTests.Services
             // Assert & Act
             var exception = await Assert.ThrowsAsync<DomainException>(() => _reservationService.CreateReservationAsync(reservationDto, userId));
             Assert.Equal("Resource is Unavailable", exception.Message);
+        }
+
+        [Fact]
+        public async Task CreateReservationAsync_AtOpeningTime_ShouldCreateReservation()
+        {
+            // Arrange
+            var userId = Guid.NewGuid().ToString();
+            var resource = CreateEntities.Resource(true);
+            var reservationDto = CreateEntities.ReservationDTO(resource.Id);
+            reservationDto.StartDate = Utils.FutureDate(8);
+            reservationDto.EndDate = reservationDto.StartDate.AddHours(1);
+
+            _mockResourceRepository.Setup(repo => repo.GetByIdAsync(resource.Id)).ReturnsAsync(resource);
+            _mockReservationRepository.Setup(repo => repo.GetAllAsync(resource.Id, reservationDto.StartDate, reservationDto.EndDate, new[] { ReservationStatus.Confirmed, ReservationStatus.Pending }, Guid.Parse(userId))).ReturnsAsync(new List<Reservation>());
+
+            // Act
+            var result = await _reservationService.CreateReservationAsync(reservationDto, userId);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(resource.Id, result.Resource.ResourceId);
+        }
+
+        [Fact]
+        public async Task CreateReservationAsync_AtClosingTime_ShouldThrowDomainException()
+        {
+            // Arrange
+            var userId = Guid.NewGuid().ToString();
+            var resource = CreateEntities.Resource(true);
+            var reservationDto = CreateEntities.ReservationDTO(resource.Id);
+            reservationDto.StartDate = Utils.FutureDate(18);
+            reservationDto.EndDate = Utils.FutureDate(19);
+
+            _mockResourceRepository.Setup(repo => repo.GetByIdAsync(resource.Id)).ReturnsAsync(resource);
+            _mockReservationRepository.Setup(repo => repo.GetAllAsync(resource.Id, reservationDto.StartDate, reservationDto.EndDate, new[] { ReservationStatus.Confirmed, ReservationStatus.Pending }, Guid.Parse(userId))).ReturnsAsync(new List<Reservation>());
+
+
+             // Act
+            var result = await _reservationService.CreateReservationAsync(reservationDto, userId);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(resource.Id, result.Resource.ResourceId);
         }
 
         [Fact]
