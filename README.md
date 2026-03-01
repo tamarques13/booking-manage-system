@@ -1,4 +1,8 @@
 # Booking Manage System
+![CI](https://github.com/tamarques13/booking-manage-system/actions/workflows/dotnet-ci.yml/badge.svg)
+![.NET](https://img.shields.io/badge/.NET-8.0-purple)
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+
 A backend booking management API built with ASP.NET Core, featuring JWT authentication, Hangfire jobs and SQL Server support for reservation workflows and related services.
 
 ## Features
@@ -8,6 +12,8 @@ A backend booking management API built with ASP.NET Core, featuring JWT authenti
 - **Modular Architecture**: Organized into controllers, services, repositories and DTOs for maintainability.
 
 ## Folder Structure
+This project follows a layered architecture approach, separating responsibilities into:
+
 - **Controllers/**: Handles API endpoints (e.g., `AuthController`, `ReservationController`, `ResourceController`).
 - **Data/**: Contains the `AppDbContext` for database interactions.
 - **DTOs/**: Data Transfer Objects for API requests and responses.
@@ -63,6 +69,37 @@ A backend booking management API built with ASP.NET Core, featuring JWT authenti
   - `POST /api/auth/login`: Authenticate and retrieve a JWT.
   - `GET /api/reservations`: Fetch all reservations for User.
   - `POST /api/reservations`: Create a new reservation for User.
+
+## Testing
+
+### Unit Tests
+This project includes unit tests for:
+- Domain models
+   - Resource
+   - Reservation
+   - Auth
+- Service layer business logic 
+   - ResourceService
+   - ReservationService
+   - AuthService
+
+Run tests locally using:
+
+```bash
+dotnet test
+```
+
+### Continuous Integration
+This project uses **GitHub Actions** to automatically build and test the application.
+
+The CI pipeline runs on:
+- Push events  
+- Pull requests  
+
+The workflow performs:
+- Restore dependencies  
+- Build the project  
+- Run unit tests  
 
 ## Generate Environment Secret Key (Git Bash)
 
