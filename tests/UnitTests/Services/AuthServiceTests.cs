@@ -21,7 +21,10 @@ namespace BookingSystem.UnitTests
             _mockAuthRepository = new Mock<IAuthRepository>();
             _authService = new AuthService(_mockAuthRepository.Object);
 
-            Environment.SetEnvironmentVariable("SECRET_KEY", "super_secret_test_key_1234567890");
+            var config = TestConfiguration.Load();
+            var secretKey = config["EnvironmentVariables:SECRET_KEY"];
+
+            Environment.SetEnvironmentVariable("SECRET_KEY", secretKey);
         }
 
         [Fact]

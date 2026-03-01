@@ -1,0 +1,5 @@
+{
+    "EnvironmentVariables": {
+        "SECRET_KEY": "super_secret_test_key_1234567890"
+    }
+}
