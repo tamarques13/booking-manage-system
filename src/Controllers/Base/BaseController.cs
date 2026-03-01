@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-namespace BookingSystem.Helpers
+namespace BookingSystem.Controllers.Base
 {
     public abstract class BaseController : ControllerBase
     {

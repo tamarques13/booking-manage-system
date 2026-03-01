@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using BookingSystem.DTOs;
 using BookingSystem.Services.Interfaces;
 using BookingSystem.Models;
-using BookingSystem.Helpers;
+using BookingSystem.Controllers.Base;
 
 namespace BookingSystem.Controllers
 {
