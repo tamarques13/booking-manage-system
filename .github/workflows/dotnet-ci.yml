@@ -1,4 +1,4 @@
-name: Backend CI
+name: .NET Build & Test
 
 on:
   push:
