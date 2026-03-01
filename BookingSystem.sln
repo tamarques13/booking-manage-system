@@ -1,20 +1,15 @@
-﻿Microsoft Visual Studio Solution File, Format Version 12.00
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookingSystem", "src\BookingSystem.csproj", "{84904094-628B-414B-BF14-15C62B1BAD5C}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{9A03A0D3-BC15-4214-B0A6-5A94DDD7AA49}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BookingSystem.Tests", "BookingSystem.Tests", "{9A03A0D3-BC15-4214-B0A6-5A94DDD7AA49}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "tests\UnitTests\UnitTests.csproj", "{453E5E71-C20E-4B3C-A2ED-0F2FC3E36491}"
 EndProject
 Global
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {06FD571B-B4C4-451C-822A-448FD57A5994}
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|x64 = Debug|x64
@@ -49,7 +44,13 @@ Global
 		{453E5E71-C20E-4B3C-A2ED-0F2FC3E36491}.Release|x86.ActiveCfg = Release|Any CPU
 		{453E5E71-C20E-4B3C-A2ED-0F2FC3E36491}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{453E5E71-C20E-4B3C-A2ED-0F2FC3E36491} = {9A03A0D3-BC15-4214-B0A6-5A94DDD7AA49}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {06FD571B-B4C4-451C-822A-448FD57A5994}
 	EndGlobalSection
 EndGlobal
