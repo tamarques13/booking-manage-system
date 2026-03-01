@@ -37,7 +37,7 @@ namespace BookingSystem.Controllers
         }
 
         [HttpPatch("{id}/guest")]
-        public async Task<IActionResult> ChangeNumberOfPeople(Guid id, int newNumberOfPeople)
+        public async Task<IActionResult> UpdateNumberOfPeople(Guid id, int newNumberOfPeople)
         {
             var reservationDto = await _reservationService.UpdateNumberOfPeopleAsync(id, newNumberOfPeople, UserId);
             return Ok(reservationDto);

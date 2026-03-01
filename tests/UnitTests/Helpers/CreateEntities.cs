@@ -1,0 +1,125 @@
+using BookingSystem.Models;
+using BookingSystem.DTOs;
+using BookingSystem.Security;
+
+namespace BookingSystem.UnitTests.Helpers
+{
+    public class CreateEntities
+    {
+        public static Resource Resource(bool allowWeekends, int capacity = 10, ResourceType type = ResourceType.Office, int startHour = 8, int endHour = 19)
+        {
+            return new Resource(
+                "Test Resource",
+                capacity,
+                type,
+                new TimeOnly(startHour, 0),
+                new TimeOnly(endHour, 0),
+                allowWeekends);
+        }
+        public static CreateResourceDto ResourceDto(bool allowWeekends, int capacity = 10, string type = "Office", int startHour = 8, int endHour = 19)
+        {
+            return new CreateResourceDto
+            {
+                Name = "New Resource",
+                Capacity = capacity,
+                Type = type,
+                OpeningTime = new TimeOnly(startHour, 0),
+                ClosingTime = new TimeOnly(endHour, 0),
+                Weekends = allowWeekends
+            };
+        }
+
+        public static Reservation Reservation(string userId, Guid? resourceId, int startHour = 12, int endHour = 13, int people = 1)
+        {
+            return new Reservation(
+                Utils.FutureDate(startHour),
+                Utils.FutureDate(endHour),
+                people,
+                resourceId ?? Guid.NewGuid(),
+                Guid.Parse(userId));
+        }
+
+        public static CreateReservationDto ReservationDTO(Guid? resourceId, int startHour = 12, int endHour = 13, int people = 1)
+        {
+            return new CreateReservationDto
+            {
+                NumberOfPeople = people,
+                StartDate = Utils.FutureDate(startHour),
+                EndDate = Utils.FutureDate(endHour),
+                ResourceId = resourceId ?? Guid.Empty
+            };
+        }
+
+        public static CreateReservationDto WeekendReservationDTO(Guid? resourceId, int people = 1)
+        {
+            return new CreateReservationDto
+            {
+                NumberOfPeople = people,
+                StartDate = Utils.FutureSaturday(),
+                EndDate = Utils.FutureSaturday().AddDays(1),
+                ResourceId = resourceId ?? Guid.Empty
+            };
+        }
+
+        public static CreateReservationDto OutsideHoursReservationDTO(Guid? resourceId, int startHour = 1, int endHour = 23, int people = 1)
+        {
+            return new CreateReservationDto
+            {
+                NumberOfPeople = people,
+                StartDate = Utils.FutureDate(startHour),
+                EndDate = Utils.FutureDate(endHour),
+                ResourceId = resourceId ?? Guid.Empty
+            };
+        }
+
+        public static CreateReservationDto OverCapacityReservationDTO(Guid? resourceId, int startHour = 12, int endHour = 13, int people = 1000)
+        {
+            return new CreateReservationDto
+            {
+                NumberOfPeople = people,
+                StartDate = Utils.FutureDate(startHour),
+                EndDate = Utils.FutureDate(endHour),
+                ResourceId = resourceId ?? Guid.Empty
+            };
+        }
+
+        public static CreateUserDto RegisterUserDto(string email = "test@example.com", string password = "password123", string firstname = "John", string lastname = "Doe", string role = "User")
+        {
+            return new CreateUserDto
+            {
+                Email = email,
+                Password = password,
+                FirstName = firstname,
+                LastName = lastname,
+                Role = role
+            };
+        }
+
+        public static User User(LoginUserDto dto)
+        {
+            return new User
+            {
+                Email = dto.Email,
+                Password = PasswordHasher.HashPassword(dto.Password)
+            };
+        }
+
+        public static User WrongUser(LoginUserDto dto)
+        {
+            return new User
+            {
+                Email = dto.Email,
+                Password = PasswordHasher.HashPassword("WrongPassword")
+            };
+        }
+
+        public static LoginUserDto LoginUserDto(string email = "test@example.com", string password = "password123")
+        {
+            return new LoginUserDto
+            {
+                Email = email,
+                Password = password
+            };
+        }
+    }
+}

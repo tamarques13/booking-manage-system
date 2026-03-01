@@ -2,6 +2,7 @@ using BookingSystem.Models;
 using BookingSystem.DTOs;
 using BookingSystem.Repositories.Interfaces;
 using BookingSystem.Services.Interfaces;
+using BookingSystem.Jobs.Interface;
 using BookingSystem.Helpers;
 using BookingSystem.Jobs;
 using BookingSystem.ExceptionHelper;
@@ -13,11 +14,12 @@ namespace BookingSystem.Services
     /// Application service responsible for managing Reservation lifecycle.
     /// Coordinates repository access and delegates business rules to the domain model.
     /// </summary>
-    
-    public class ReservationService(IReservationRepository reservationRepository, IResourceRepository resourceRepository) : IReservationService
+
+    public class ReservationService(IReservationRepository reservationRepository, IResourceRepository resourceRepository, IJobScheduler jobScheduler) : IReservationService
     {
         private readonly IReservationRepository _reservationRepository = reservationRepository;
         private readonly IResourceRepository _resourceRepository = resourceRepository;
+        private readonly IJobScheduler _jobScheduler = jobScheduler;
 
         /// <summary>
         /// Creates a new reservation for the specified resource.
@@ -39,13 +41,13 @@ namespace BookingSystem.Services
             var reservation = new Reservation(dto.StartDate, dto.EndDate, dto.NumberOfPeople, dto.ResourceId, Guid.Parse(userId));
             var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
 
-            resource.ValidateReservation(reservation, resource);
+            reservation.ValidateReservation(resource);
 
             await ValidateCapacityNotExceeded(reservation, resource, userId);
 
             await _reservationRepository.AddAsync(reservation);
 
-            BackgroundJob.Schedule<ReservationJob>((job) => job.ExpireReservation(reservation.Id, Guid.Parse(userId)), TimeSpan.FromSeconds(60));
+            _jobScheduler.ScheduleReservationExpiration(reservation.Id, userId);
 
             return reservation.ToReservationDto(resource);
         }
@@ -111,7 +113,7 @@ namespace BookingSystem.Services
 
             var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
 
-            resource.ValidateReservation(reservation, resource);
+            reservation.ValidateReservation(resource);
             await ValidateCapacityNotExceeded(reservation, resource, userId);
 
             await _reservationRepository.UpdateAsync(reservation);
@@ -136,8 +138,8 @@ namespace BookingSystem.Services
             var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
 
             reservation.UpdateDateReservation(newStartDate, newEndDate);
-
-            resource.ValidateReservation(reservation, resource);
+            reservation.ValidateReservation(resource);
+            
             await ValidateCapacityNotExceeded(reservation, resource, userId);
 
             await _reservationRepository.UpdateAsync(reservation);
@@ -160,7 +162,7 @@ namespace BookingSystem.Services
             var reservation = await _reservationRepository.GetByIdAsync(reservationId, Guid.Parse(userId));
             var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
 
-            reservation.ChangeNumberOfPeople(newNumberOfPeople);
+            reservation.UpdateNumberOfPeople(newNumberOfPeople);
 
             await ValidateCapacityNotExceeded(reservation, resource, userId);
             await _reservationRepository.UpdateAsync(reservation);
