@@ -6,15 +6,16 @@ namespace BookingSystem.Models
     public class Reservation
     {
         public Reservation() { }
-
-        public Guid Id { get; set; }
-        public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
-        public int NumberOfPeople { get; set; }
-        public ReservationStatus Status { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public Guid ResourceId { get; set; }
-        public Guid UserId { get; set; }
+        public Guid Id { get; private set; }
+        public DateTime StartDate { get; private set; }
+        public DateTime EndDate { get; private set; }
+        public int NumberOfPeople { get; private set; }
+        public ReservationStatus Status { get; private set; }
+        public DateTime CreatedAt { get; private set; }
+        public Guid ResourceId { get; private set; }
+        public Resource? Resource { get; private set; }
+        public Guid UserId { get; private set; }
+        public User? User { get; private set; }
 
         public Reservation(DateTime startDate, DateTime endDate, int numberOfPeople, Guid resourceId, Guid userId)
         {
@@ -23,6 +24,7 @@ namespace BookingSystem.Models
             if (startDate < DateTime.Now) throw new DomainException("StartDate cannot be in the past");
 
             if (numberOfPeople <= 0) throw new DomainException("NumberOfPeople must be greater than zero");
+
 
             Id = Guid.NewGuid();
             Status = ReservationStatus.Pending;
@@ -49,7 +51,7 @@ namespace BookingSystem.Models
 
             Status = ReservationStatus.Cancelled;
         }
-        
+
         public void ExpireReservation()
         {
             if (Status != ReservationStatus.Pending) throw new DomainException("Only pending reservations can be expired.");

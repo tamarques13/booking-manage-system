@@ -12,6 +12,7 @@ namespace BookingSystem.Models
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
         public UserRoles Role { get; set; }
+        public ICollection<Reservation> Reservations { get; set; } = [];
 
         public User(string email, string passwordHash, string firstName, string lastName, UserRoles role)
         {
