@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using BookingSystem.Models;
 using BookingSystem.Data;
 using BookingSystem.Repositories.Interfaces;
+using System.Linq.Expressions;
 
 namespace BookingSystem.Repositories
 {
@@ -40,6 +41,11 @@ namespace BookingSystem.Repositories
             if (status.Length != 0) query = query.Where(x => status.Contains(x.Status));
 
             return await query.ToListAsync();
+        }
+
+        public async Task<bool> AnyAsync(Expression<Func<Reservation, bool>> predicate)
+        {
+            return await _context.Reservations.AnyAsync(predicate);
         }
 
         public async Task DeleteAsync(Reservation reservation)

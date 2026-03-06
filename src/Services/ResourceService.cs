@@ -4,6 +4,7 @@ using BookingSystem.Repositories.Interfaces;
 using BookingSystem.DTOs;
 using BookingSystem.Helpers;
 using BookingSystem.ExceptionHelper;
+using Microsoft.EntityFrameworkCore;
 
 namespace BookingSystem.Services
 {
@@ -12,10 +13,11 @@ namespace BookingSystem.Services
     /// Application service responsible for managing Resource lifecycle.
     /// Coordinates repository access and delegates business rules to the domain model.
     /// </summary>
-    
-    public class ResourceService(IResourceRepository resourceRepository) : IResourceService
+
+    public class ResourceService(IResourceRepository resourceRepository, IReservationRepository reservationRepository) : IResourceService
     {
         private readonly IResourceRepository _resourceRepository = resourceRepository;
+        private readonly IReservationRepository _reservationRepository = reservationRepository;
 
         /// <summary>
         /// Creates a new Resource to be used by a reservation.
@@ -163,6 +165,10 @@ namespace BookingSystem.Services
         public async Task DeleteResourceAsync(Guid resourceId)
         {
             var resource = await _resourceRepository.GetByIdAsync(resourceId);
+
+            var hasReservations = await _reservationRepository.AnyAsync(r => r.ResourceId == resourceId);
+
+            if (hasReservations) throw new DomainException("This item cannot be modified.");
 
             await _resourceRepository.DeleteAsync(resource);
         }
