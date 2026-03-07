@@ -121,5 +121,29 @@ namespace BookingSystem.UnitTests.Helpers
                 Password = password
             };
         }
+
+        public static User UserModel(string email = "test@email.com", string password = "secret", string firstName = "User", string lastName = "name", UserRoles role = UserRoles.User)
+        {
+            return new User
+            {
+                Email = email,
+                Password = password,
+                FirstName = firstName,
+                LastName = lastName,
+                Role = role
+            };
+        }
+
+        public static CreateUserDto CreateUserDto(string email = "test@email.com", string password = "secret", string firstName = "test", string lastName = "name", string role = "User")
+        {
+            return new CreateUserDto
+            {
+                Email = email,
+                Password = password,
+                FirstName = firstName,
+                LastName = lastName,
+                Role = role
+            };
+        }
     }
 }

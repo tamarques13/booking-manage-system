@@ -41,5 +41,16 @@ namespace BookingSystem.Helpers
                 Weekends = resource.Weekends,
             };
         }
+
+        public static UserDto ToUserDto(this User user)
+        {
+            return new UserDto
+            {
+                Id = user.Id,
+                Email = user.Email,
+                Name = $"{user.FirstName} {user.LastName}",
+                Role = user.Role.ToString(),
+            };
+        }
     }
 }

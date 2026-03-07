@@ -4,7 +4,6 @@ using BookingSystem.Repositories.Interfaces;
 using BookingSystem.Models;
 using BookingSystem.UnitTests.Helpers;
 using BookingSystem.ExceptionHelper;
-using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
 namespace BookingSystem.UnitTests.Services

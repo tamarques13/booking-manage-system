@@ -11,7 +11,8 @@ namespace BookingSystem.Middleware
             try
             {
                 await next(context);
-            }catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 logger.LogError(ex, "Unhandled exception occurred");
 
