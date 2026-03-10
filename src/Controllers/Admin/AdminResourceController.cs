@@ -3,12 +3,12 @@ using Microsoft.AspNetCore.Mvc;
 using BookingSystem.DTOs;
 using BookingSystem.Services.Interfaces;
 
-namespace BookingSystem.Controllers
+namespace BookingSystem.Controllers.Admin
 {
     [ApiController]
-    [Route("api/resources")]
+    [Route("api/admin/resources")]
     [Authorize(Roles = "Admin")]
-    public class ResourceController(IResourceService resourceService) : ControllerBase
+    public class AdminResourceController(IResourceService resourceService) : ControllerBase
     {
         private readonly IResourceService _resourceService = resourceService;
 
@@ -45,14 +45,6 @@ namespace BookingSystem.Controllers
         {
             var resourceDto = await _resourceService.UpdateWeekendAsync(id);
             return Ok(resourceDto);
-        }
-
-        [Authorize(Roles = "User, Admin")]
-        [HttpGet]
-        public async Task<IActionResult> GetResources()
-        {
-            var resources = await _resourceService.GetResourcesAsync();
-            return Ok(resources);
         }
 
         [HttpGet("{id}")]

@@ -36,6 +36,24 @@ namespace BookingSystem.Models
             UserId = userId;
         }
 
+        public void Update(ReservationStatus status, DateTime startDate, DateTime endDate, int numberOfPeople, Guid resourceId, Guid userId)
+        {
+            if(!Enum.IsDefined(typeof(ReservationStatus), status)) throw new DomainException($"Status: {status} is not allowed");
+
+            if (endDate <= startDate) throw new DomainException("EndDate must be after StartDate");
+
+            if (startDate < DateTime.Now) throw new DomainException("StartDate cannot be in the past");
+
+            if (numberOfPeople <= 0) throw new DomainException("NumberOfPeople must be greater than zero");
+
+            Status = status;
+            StartDate = startDate;
+            EndDate = endDate;
+            NumberOfPeople = numberOfPeople;
+            ResourceId = resourceId;
+            UserId = userId;
+        }
+
         public void ConfirmReservation()
         {
             if (Status != ReservationStatus.Pending) throw new DomainException("Only pending reservations can be confirmed.");

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using BookingSystem.Services.Interfaces;
 using BookingSystem.DTOs;
 
-namespace BookingSystem.Controllers
+namespace BookingSystem.Controllers.Public
 {
     [ApiController]
     [Route("api/auth")]

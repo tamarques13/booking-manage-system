@@ -5,7 +5,7 @@ using BookingSystem.Services.Interfaces;
 using BookingSystem.Models;
 using BookingSystem.Controllers.Base;
 
-namespace BookingSystem.Controllers
+namespace BookingSystem.Controllers.User
 {
     [ApiController]
     [Route("api/reservations")]

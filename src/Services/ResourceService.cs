@@ -4,7 +4,6 @@ using BookingSystem.Repositories.Interfaces;
 using BookingSystem.DTOs;
 using BookingSystem.Helpers;
 using BookingSystem.ExceptionHelper;
-using Microsoft.EntityFrameworkCore;
 
 namespace BookingSystem.Services
 {

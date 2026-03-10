@@ -5,7 +5,7 @@ namespace BookingSystem.Helpers
 {
     public static class ModelsDtoMapper
     {
-        public static ReservationDto ToReservationDto(this Reservation reservation, Resource resource, List<ReservationDto>? reservationDtos = null)
+        public static ReservationDto ToReservationDto(this Reservation reservation, Resource resource, User user)
         {
             return new ReservationDto
             {
@@ -23,6 +23,13 @@ namespace BookingSystem.Helpers
                     OpeningTime = resource.OpeningTime,
                     ClosingTime = resource.ClosingTime,
                     Weekends = resource.Weekends,
+                },
+                User = new UserDto
+                {
+                    Id = user.Id,
+                    Email = user.Email,
+                    Name = $"{user.FirstName} {user.LastName}",
+                    Role = user.Role.ToString(),
                 }
             };
         }
@@ -39,6 +46,17 @@ namespace BookingSystem.Helpers
                 OpeningTime = resource.OpeningTime,
                 ClosingTime = resource.ClosingTime,
                 Weekends = resource.Weekends,
+            };
+        }
+
+        public static UserDto ToUserDto(this User user)
+        {
+            return new UserDto
+            {
+                Id = user.Id,
+                Email = user.Email,
+                Name = $"{user.FirstName} {user.LastName}",
+                Role = user.Role.ToString(),
             };
         }
     }
