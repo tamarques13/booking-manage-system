@@ -26,4 +26,4 @@ jobs:
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: 8.0.x
-      - run: dotnet test ./booking-manage-system.sln --no-build
+      - run: dotnet test ./tests/UnitTests/UnitTests.csproj --no-build
