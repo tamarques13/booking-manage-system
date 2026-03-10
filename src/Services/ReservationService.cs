@@ -202,7 +202,7 @@ namespace BookingSystem.Services
             {
                 var resource = resourceDictionary[reservation.ResourceId];
                 var user = userDictionary[reservation.UserId];
-                
+
                 reservationDtos.Add(reservation.ToReservationDto(resource, user));
             }
 
@@ -240,6 +240,12 @@ namespace BookingSystem.Services
             await _reservationRepository.DeleteAsync(reservation);
         }
 
+        /// <summary>
+        /// Creates a new reservation on behalf of an admin user.
+        /// </summary>
+        /// <param name="dto">The data transfer object containing reservation details.</param>
+        /// <exception cref="ArgumentException">Thrown if reservation validation fails.</exception>
+
         public async Task<ReservationDto> CreateAdminReservationAsync(CreateAdminReservationDto dto)
         {
             var reservation = new Reservation(dto.StartDate, dto.EndDate, dto.NumberOfPeople, dto.ResourceId, dto.UserId);
@@ -257,6 +263,14 @@ namespace BookingSystem.Services
             return reservation.ToReservationDto(resource, user);
         }
 
+        /// <summary>
+        /// Updates an existing reservation as an admin user.
+        /// </summary>
+        /// <param name="dto">The data transfer object containing updated reservation details.</param>
+        /// <param name="reservationId">The ID of the reservation to update.</param>
+        /// <exception cref="KeyNotFoundException">Thrown when the reservation does not exist.</exception>
+        /// <exception cref="ArgumentException">Thrown if reservation validation fails.</exception>
+
         public async Task<ReservationDto> UpdateAdminReservationAsync(UpdateAdminReservationDto dto, Guid reservationId)
         {
             var reservation = await _reservationRepository.GetAdminByIdAsync(reservationId);
@@ -270,6 +284,15 @@ namespace BookingSystem.Services
 
             return reservation.ToReservationDto(resource, user);
         }
+
+        /// <summary>
+        /// Retrieves a list of reservations based on admin level filters.
+        /// </summary>
+        /// <param name="resourceId">Optional resource ID to filter reservations.</param>
+        /// <param name="startTime">Optional start time to filter reservations.</param>
+        /// <param name="endTime">Optional end time to filter reservations.</param>
+        /// <param name="status">Optional array of reservation statuses to filter.</param>
+        /// <param name="userId">Optional user ID to filter reservations.</param>
 
         public async Task<List<ReservationDto>> GetAdminReservationsAsync(Guid? resourceId, DateTime? startTime, DateTime? endTime, ReservationStatus[]? status, string? userId)
         {
@@ -299,6 +322,12 @@ namespace BookingSystem.Services
             return reservationDtos;
         }
 
+        /// <summary>
+        /// Retrieves a single reservation by its ID with full details.
+        /// </summary>
+        /// <param name="reservationId">The ID of the reservation to retrieve.</param>
+        /// <exception cref="KeyNotFoundException">Thrown when the reservation does not exist.</exception>
+
         public async Task<ReservationDto> GetAdminReservationByIdAsync(Guid reservationId)
         {
             var reservation = await _reservationRepository.GetAdminByIdAsync(reservationId);
@@ -308,6 +337,11 @@ namespace BookingSystem.Services
             return reservation.ToReservationDto(resource, user);
         }
 
+        /// <summary>
+        /// Permanently deletes a reservation by its ID at the admin level. Should not be used if historical booking data must be preserved.
+        /// </summary>
+        /// <param name="reservationId">The ID of the reservation to delete.</param>
+        /// <exception cref="KeyNotFoundException">Thrown when the reservation does not exist.</exception>
         public async Task DeleteAdminReservationByIdAsync(Guid reservationId)
         {
             var reservation = await _reservationRepository.GetAdminByIdAsync(reservationId);
@@ -345,11 +379,6 @@ namespace BookingSystem.Services
             }
 
             if (max > resource.Capacity) throw new DomainException(resource.Name + " has reached capacity limit.");
-        }
-
-        public async Task GetAdminReservationsAsync()
-        {
-            throw new NotImplementedException();
         }
     }
 }
