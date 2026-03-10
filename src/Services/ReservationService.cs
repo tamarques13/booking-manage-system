@@ -13,10 +13,11 @@ namespace BookingSystem.Services
     /// Coordinates repository access and delegates business rules to the domain model.
     /// </summary>
 
-    public class ReservationService(IReservationRepository reservationRepository, IResourceRepository resourceRepository, IJobScheduler jobScheduler) : IReservationService
+    public class ReservationService(IReservationRepository reservationRepository, IResourceRepository resourceRepository, IUserRepository userRepository, IJobScheduler jobScheduler) : IReservationService
     {
         private readonly IReservationRepository _reservationRepository = reservationRepository;
         private readonly IResourceRepository _resourceRepository = resourceRepository;
+        private readonly IUserRepository _userRepository = userRepository;
         private readonly IJobScheduler _jobScheduler = jobScheduler;
 
         /// <summary>
@@ -38,6 +39,7 @@ namespace BookingSystem.Services
         {
             var reservation = new Reservation(dto.StartDate, dto.EndDate, dto.NumberOfPeople, dto.ResourceId, Guid.Parse(userId));
             var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
+            var user = await _userRepository.GetByIdAsync(Guid.Parse(userId));
 
             reservation.ValidateReservation(resource);
 
@@ -47,7 +49,7 @@ namespace BookingSystem.Services
 
             _jobScheduler.ScheduleReservationExpiration(reservation.Id, userId);
 
-            return reservation.ToReservationDto(resource);
+            return reservation.ToReservationDto(resource, user);
         }
 
         /// <summary>
@@ -63,12 +65,13 @@ namespace BookingSystem.Services
         {
             var reservation = await _reservationRepository.GetByIdAsync(reservationId, Guid.Parse(userId));
             var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
+            var user = await _userRepository.GetByIdAsync(Guid.Parse(userId));
 
             reservation.CancelReservation();
 
             await _reservationRepository.UpdateAsync(reservation);
 
-            return reservation.ToReservationDto(resource);
+            return reservation.ToReservationDto(resource, user);
         }
 
 
@@ -85,12 +88,13 @@ namespace BookingSystem.Services
         {
             var reservation = await _reservationRepository.GetByIdAsync(reservationId, Guid.Parse(userId));
             var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
+            var user = await _userRepository.GetByIdAsync(Guid.Parse(userId));
 
             reservation.ConfirmReservation();
 
             await _reservationRepository.UpdateAsync(reservation);
 
-            return reservation.ToReservationDto(resource);
+            return reservation.ToReservationDto(resource, user);
         }
 
         /// <summary>
@@ -106,17 +110,17 @@ namespace BookingSystem.Services
         public async Task<ReservationDto> UpdateResourceAsync(Guid reservationId, Guid resourceId, string userId)
         {
             var reservation = await _reservationRepository.GetByIdAsync(reservationId, Guid.Parse(userId));
+            var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
+            var user = await _userRepository.GetByIdAsync(Guid.Parse(userId));
 
             reservation.UpdateResource(resourceId);
-
-            var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
-
             reservation.ValidateReservation(resource);
+
             await ValidateCapacityNotExceeded(reservation, resource, userId);
 
             await _reservationRepository.UpdateAsync(reservation);
 
-            return reservation.ToReservationDto(resource);
+            return reservation.ToReservationDto(resource, user);
         }
 
         /// <summary>
@@ -134,15 +138,16 @@ namespace BookingSystem.Services
         {
             var reservation = await _reservationRepository.GetByIdAsync(reservationId, Guid.Parse(userId));
             var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
+            var user = await _userRepository.GetByIdAsync(Guid.Parse(userId));
 
             reservation.UpdateDateReservation(newStartDate, newEndDate);
             reservation.ValidateReservation(resource);
-            
+
             await ValidateCapacityNotExceeded(reservation, resource, userId);
 
             await _reservationRepository.UpdateAsync(reservation);
 
-            return reservation.ToReservationDto(resource);
+            return reservation.ToReservationDto(resource, user);
         }
 
         /// <summary>
@@ -159,13 +164,14 @@ namespace BookingSystem.Services
         {
             var reservation = await _reservationRepository.GetByIdAsync(reservationId, Guid.Parse(userId));
             var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
+            var user = await _userRepository.GetByIdAsync(Guid.Parse(userId));
 
             reservation.UpdateNumberOfPeople(newNumberOfPeople);
 
             await ValidateCapacityNotExceeded(reservation, resource, userId);
             await _reservationRepository.UpdateAsync(reservation);
 
-            return reservation.ToReservationDto(resource);
+            return reservation.ToReservationDto(resource, user);
         }
 
         /// <summary>
@@ -180,16 +186,24 @@ namespace BookingSystem.Services
         public async Task<List<ReservationDto>> GetReservationsAsync(Guid? resourceId, DateTime? startTime, DateTime? endtime, ReservationStatus[] status, string userId)
         {
             var reservations = await _reservationRepository.GetAllAsync(resourceId, startTime, endtime, status, Guid.Parse(userId));
+
             var resourceIds = reservations.Select(r => r.ResourceId).Distinct().ToList();
+            var userIds = reservations.Select(r => r.UserId).Distinct().ToList();
+
             var resources = await _resourceRepository.GetByIdsAsync(resourceIds);
+            var users = await _userRepository.GetByIdsAsync(userIds);
+
             var resourceDictionary = resources.ToDictionary(r => r.Id);
+            var userDictionary = users.ToDictionary(u => u.Id);
 
             var reservationDtos = new List<ReservationDto>();
 
             foreach (var reservation in reservations)
             {
                 var resource = resourceDictionary[reservation.ResourceId];
-                reservationDtos.Add(reservation.ToReservationDto(resource, reservationDtos: reservationDtos));
+                var user = userDictionary[reservation.UserId];
+                
+                reservationDtos.Add(reservation.ToReservationDto(resource, user));
             }
 
             return reservationDtos;
@@ -207,8 +221,9 @@ namespace BookingSystem.Services
         {
             var reservation = await _reservationRepository.GetByIdAsync(reservationId, Guid.Parse(userId));
             var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
+            var user = await _userRepository.GetByIdAsync(Guid.Parse(userId));
 
-            return reservation.ToReservationDto(resource);
+            return reservation.ToReservationDto(resource, user);
         }
 
         /// <summary>
@@ -221,6 +236,81 @@ namespace BookingSystem.Services
         public async Task DeleteReservationAsync(Guid reservationId, string userId)
         {
             var reservation = await _reservationRepository.GetByIdAsync(reservationId, Guid.Parse(userId));
+
+            await _reservationRepository.DeleteAsync(reservation);
+        }
+
+        public async Task<ReservationDto> CreateAdminReservationAsync(CreateAdminReservationDto dto)
+        {
+            var reservation = new Reservation(dto.StartDate, dto.EndDate, dto.NumberOfPeople, dto.ResourceId, dto.UserId);
+            var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
+            var user = await _userRepository.GetByIdAsync(dto.UserId);
+
+            reservation.ValidateReservation(resource);
+
+            await ValidateCapacityNotExceeded(reservation, resource, dto.UserId.ToString());
+
+            reservation.ConfirmReservation();
+
+            await _reservationRepository.AddAsync(reservation);
+
+            return reservation.ToReservationDto(resource, user);
+        }
+
+        public async Task<ReservationDto> UpdateAdminReservationAsync(UpdateAdminReservationDto dto, Guid reservationId)
+        {
+            var reservation = await _reservationRepository.GetAdminByIdAsync(reservationId);
+            var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
+            var user = await _userRepository.GetByIdAsync(dto.UserId);
+
+            reservation.Update(dto.Status, dto.StartDate, dto.EndDate, dto.NumberOfPeople, dto.ResourceId, dto.UserId);
+
+            await ValidateCapacityNotExceeded(reservation, resource, dto.UserId.ToString());
+            await _reservationRepository.UpdateAsync(reservation);
+
+            return reservation.ToReservationDto(resource, user);
+        }
+
+        public async Task<List<ReservationDto>> GetAdminReservationsAsync(Guid? resourceId, DateTime? startTime, DateTime? endTime, ReservationStatus[]? status, string? userId)
+        {
+            Guid? id = userId != null ? Guid.Parse(userId) : null;
+
+            var reservations = await _reservationRepository.GetAdminAllAsync(resourceId, startTime, endTime, status, id);
+
+            var resourceIds = reservations.Select(r => r.ResourceId).Distinct().ToList();
+            var userIds = reservations.Select(r => r.UserId).Distinct().ToList();
+
+            var resources = await _resourceRepository.GetByIdsAsync(resourceIds);
+            var users = await _userRepository.GetByIdsAsync(userIds);
+
+            var resourceDictionary = resources.ToDictionary(r => r.Id);
+            var userDictionary = users.ToDictionary(u => u.Id);
+
+            var reservationDtos = new List<ReservationDto>();
+
+            foreach (var reservation in reservations)
+            {
+                var resource = resourceDictionary[reservation.ResourceId];
+                var user = userDictionary[reservation.UserId];
+
+                reservationDtos.Add(reservation.ToReservationDto(resource, user));
+            }
+
+            return reservationDtos;
+        }
+
+        public async Task<ReservationDto> GetAdminReservationByIdAsync(Guid reservationId)
+        {
+            var reservation = await _reservationRepository.GetAdminByIdAsync(reservationId);
+            var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
+            var user = await _userRepository.GetByIdAsync(reservation.UserId);
+
+            return reservation.ToReservationDto(resource, user);
+        }
+
+        public async Task DeleteAdminReservationByIdAsync(Guid reservationId)
+        {
+            var reservation = await _reservationRepository.GetAdminByIdAsync(reservationId);
 
             await _reservationRepository.DeleteAsync(reservation);
         }
@@ -255,6 +345,11 @@ namespace BookingSystem.Services
             }
 
             if (max > resource.Capacity) throw new DomainException(resource.Name + " has reached capacity limit.");
+        }
+
+        public async Task GetAdminReservationsAsync()
+        {
+            throw new NotImplementedException();
         }
     }
 }

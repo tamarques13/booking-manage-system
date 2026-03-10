@@ -83,6 +83,31 @@ namespace BookingSystem.UnitTests.Helpers
             };
         }
 
+        public static CreateAdminReservationDto CreateAdminReservationDto(Guid userId, Guid? resourceId, int people = 1, int startHour = 12, int endHour = 13)
+        {
+            return new CreateAdminReservationDto
+            {
+                NumberOfPeople = people,
+                StartDate = Utils.FutureDate(startHour),
+                EndDate = Utils.FutureDate(endHour),
+                ResourceId = resourceId ?? Guid.Empty,
+                UserId = userId
+            };
+        }
+
+        public static UpdateAdminReservationDto UpdateAdminReservationDto(Guid userId, Guid? resourceId, ReservationStatus status = ReservationStatus.Cancelled, int people = 1, int startHour = 12, int endHour = 13)
+        {
+            return new UpdateAdminReservationDto
+            {
+                Status = status,
+                NumberOfPeople = people,
+                StartDate = Utils.FutureDate(startHour),
+                EndDate = Utils.FutureDate(endHour),
+                ResourceId = resourceId ?? Guid.Empty,
+                UserId = userId
+            };
+        }
+
         public static CreateUserDto RegisterUserDto(string email = "test@example.com", string password = "password123", string firstname = "John", string lastname = "Doe", string role = "User")
         {
             return new CreateUserDto

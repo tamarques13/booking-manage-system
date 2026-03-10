@@ -20,6 +20,17 @@ namespace BookingSystem.Repositories
             return await _context.Users.FindAsync(userId) ?? throw new KeyNotFoundException($"Resource with Id {userId} not found.");
         }
 
+        public async Task<List<User>> GetByIdsAsync(List<Guid> ids)
+        {
+            if (ids.Count == 0) return [];
+
+            IQueryable<User> query = _context.Users;
+
+            query = query.Where(r => ids.Contains(r.Id));
+
+            return await query.ToListAsync();
+        }
+
         public async Task<List<User>> GetAllAsync()
         {
             return await _context.Users.ToListAsync();

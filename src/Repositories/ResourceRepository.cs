@@ -30,13 +30,13 @@ namespace BookingSystem.Repositories
 
         public async Task<List<Resource>> GetByIdsAsync(List<Guid> ids)
         {
-            if (ids.Count == 0) return new List<Resource>();
+            if (ids.Count == 0) return [];
             
             IQueryable<Resource> query = _context.Resources;
             
             query = query.Where(r => ids.Contains(r.Id));
 
-             return await _context.Resources.Where(r => ids.Contains(r.Id)).ToListAsync();
+             return await query.ToListAsync();
         }
 
         public async Task<List<Resource>> GetAllAsync()
