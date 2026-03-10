@@ -56,18 +56,18 @@ namespace BookingSystem.Repositories
 
         }
 
-        public async Task<List<Reservation>> GetAdminAllAsync(Guid? resourceId, DateTime? startTime, DateTime? endTime, ReservationStatus[] status, Guid? userId)
+        public async Task<List<Reservation>> GetAdminAllAsync(Guid? resourceId, DateTime? startTime, DateTime? endTime, ReservationStatus[]? status, Guid? userId)
 
         {
             IQueryable<Reservation> query = _context.Reservations;
-
+            
             if (userId != null) query = query.Where(r => r.UserId == userId);
 
             if (resourceId.HasValue) query = query.Where(x => x.ResourceId == resourceId.Value);
 
             if (endTime.HasValue && startTime.HasValue) query = query.Where(x => x.StartDate <= endTime.Value && x.EndDate >= startTime.Value);
 
-            if (status.Length != 0) query = query.Where(x => status.Contains(x.Status));
+            if (status != null && status.Length != 0) query = query.Where(x => status.Contains(x.Status));
 
             return await query.ToListAsync();
         }
