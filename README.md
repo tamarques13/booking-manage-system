@@ -66,9 +66,12 @@ This project follows a layered architecture approach, separating responsibilitie
 ## Usage
 - Use tools like Postman or Swagger to test the API endpoints.
 - Example endpoints:
-  - `POST /api/auth/login`: Authenticate and retrieve a JWT.
-  - `GET /api/reservations`: Fetch all reservations for User.
-  - `POST /api/reservations`: Create a new reservation for User.
+  - `POST /api/v1/auth/login`: Authenticate and retrieve a JWT.
+  - `GET /api/v1/reservations`: Fetch all reservations for User.
+  - `POST /api/v1/reservations`: Create a new reservation for User.
+  - `GET /api/v1/admin/users`: Retrieves all users in the system.
+  - `GET /api/v1/admin/reservations`: Fetch all reservations.
+  - `POST /api/v1/admin/reservations`: Creates a new reservation on behalf of an admin user.
 
 ## Testing
 
@@ -81,7 +84,9 @@ This project includes unit tests for:
 - Service layer business logic 
    - ResourceService
    - ReservationService
+   - AdminReservationService
    - AuthService
+   - UserService
 
 Run tests locally using:
 
@@ -93,7 +98,6 @@ dotnet test
 This project uses **GitHub Actions** to automatically build and test the application.
 
 The CI pipeline runs on:
-- Push events  
 - Pull requests  
 
 The workflow performs:

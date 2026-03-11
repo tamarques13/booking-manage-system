@@ -6,14 +6,15 @@ namespace BookingSystem.Models
     public enum ResourceStatus { Available, Unavailable }
     public class Resource
     {
-        public Guid Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public int Capacity { get; set; }
-        public TimeOnly OpeningTime { get; set; }
-        public TimeOnly ClosingTime { get; set; }
-        public ResourceType Type { get; set; }
-        public ResourceStatus Status { get; set; }
-        public bool Weekends { get; set; }
+        public Guid Id { get; private set; }
+        public string Name { get; private set; } = string.Empty;
+        public int Capacity { get; private set; }
+        public TimeOnly OpeningTime { get; private set; }
+        public TimeOnly ClosingTime { get; private set; }
+        public ResourceType Type { get; private set; }
+        public ResourceStatus Status { get; private set; }
+        public bool Weekends { get; private set; }
+        public ICollection<Reservation> Reservations {get; private set;} = [];
 
         public Resource(string name, int capacity, ResourceType type, TimeOnly openingTime, TimeOnly closingTime, bool weekends)
         {

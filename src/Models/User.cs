@@ -12,6 +12,7 @@ namespace BookingSystem.Models
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
         public UserRoles Role { get; set; }
+        public ICollection<Reservation> Reservations { get; set; } = [];
 
         public User(string email, string passwordHash, string firstName, string lastName, UserRoles role)
         {
@@ -21,6 +22,20 @@ namespace BookingSystem.Models
             if (string.IsNullOrEmpty(lastName)) throw new DomainException("User must have an LastName");
 
             Id = Guid.NewGuid();
+            Email = email;
+            Password = passwordHash;
+            FirstName = firstName;
+            LastName = lastName;
+            Role = role;
+        }
+
+        public void Update(string email, string passwordHash, string firstName, string lastName, UserRoles role)
+        {
+            if (string.IsNullOrEmpty(email)) throw new DomainException("User must have an Email");
+            if (string.IsNullOrEmpty(passwordHash)) throw new DomainException("User must have an Password");
+            if (string.IsNullOrEmpty(firstName)) throw new DomainException("User must have an FirstName");
+            if (string.IsNullOrEmpty(lastName)) throw new DomainException("User must have an LastName");
+
             Email = email;
             Password = passwordHash;
             FirstName = firstName;

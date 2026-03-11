@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using BookingSystem.Models;
 using BookingSystem.Data;
 using BookingSystem.Repositories.Interfaces;
+using System.Linq.Expressions;
 
 namespace BookingSystem.Repositories
 {
@@ -42,12 +43,38 @@ namespace BookingSystem.Repositories
             return await query.ToListAsync();
         }
 
+        public async Task<bool> AnyAsync(Expression<Func<Reservation, bool>> predicate)
+        {
+            return await _context.Reservations.AnyAsync(predicate);
+        }
+
         public async Task DeleteAsync(Reservation reservation)
         {
             _context.Reservations.Remove(reservation);
 
             await _context.SaveChangesAsync();
 
+        }
+
+        public async Task<List<Reservation>> GetAdminAllAsync(Guid? resourceId, DateTime? startTime, DateTime? endTime, ReservationStatus[]? status, Guid? userId)
+
+        {
+            IQueryable<Reservation> query = _context.Reservations;
+            
+            if (userId != null) query = query.Where(r => r.UserId == userId);
+
+            if (resourceId.HasValue) query = query.Where(x => x.ResourceId == resourceId.Value);
+
+            if (endTime.HasValue && startTime.HasValue) query = query.Where(x => x.StartDate <= endTime.Value && x.EndDate >= startTime.Value);
+
+            if (status != null && status.Length != 0) query = query.Where(x => status.Contains(x.Status));
+
+            return await query.ToListAsync();
+        }
+
+        public async Task<Reservation> GetAdminByIdAsync(Guid reservationId)
+        {
+            return await _context.Reservations.FirstOrDefaultAsync(r => r.Id == reservationId) ?? throw new KeyNotFoundException($"Reservation with Id {reservationId} not found.");
         }
     }
 }

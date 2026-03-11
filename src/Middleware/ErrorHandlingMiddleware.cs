@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using BookingSystem.ExceptionHelper;
 
 namespace BookingSystem.Middleware
@@ -26,14 +27,12 @@ namespace BookingSystem.Middleware
 
                 context.Response.StatusCode = statusCode;
 
-                var json = new ProblemDetails
+                await context.Response.WriteAsJsonAsync(new ProblemDetails
                 {
                     Title = "An error occured",
                     Status = statusCode,
                     Detail = statusCode == StatusCodes.Status500InternalServerError ? "An unexpected error occurred" : ex.Message,
-                };
-
-                await context.Response.WriteAsJsonAsync(json);
+                });
             }
         }
     }

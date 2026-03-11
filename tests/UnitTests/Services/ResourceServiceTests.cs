@@ -3,18 +3,22 @@ using BookingSystem.Services;
 using BookingSystem.Repositories.Interfaces;
 using BookingSystem.Models;
 using BookingSystem.UnitTests.Helpers;
+using BookingSystem.ExceptionHelper;
+using System.Linq.Expressions;
 
 namespace BookingSystem.UnitTests.Services
 {
     public class ResourceServiceTests
     {
         private readonly Mock<IResourceRepository> _mockResourceRepository;
+        private readonly Mock<IReservationRepository> _mockReservationRepository;
         private readonly ResourceService _resourceService;
 
         public ResourceServiceTests()
         {
             _mockResourceRepository = new Mock<IResourceRepository>();
-            _resourceService = new ResourceService(_mockResourceRepository.Object);
+            _mockReservationRepository = new Mock<IReservationRepository>();
+            _resourceService = new ResourceService(_mockResourceRepository.Object, _mockReservationRepository.Object);
         }
 
         [Fact]
@@ -157,6 +161,25 @@ namespace BookingSystem.UnitTests.Services
 
             // Assert
             _mockResourceRepository.Verify(repo => repo.DeleteAsync(resource), Times.Once);
+        }
+
+        [Fact]
+        public async Task DeleteResource_WhenResourceHasReservations_ShouldThrowDomainException()
+        {
+            // Arrange
+            var resource = CreateEntities.Resource(true);
+            var reservation = CreateEntities.Reservation(Guid.NewGuid().ToString(), resource.Id);
+
+
+            resource.Reservations.Add(reservation);
+            _mockResourceRepository.Setup(repo => repo.GetByIdAsync(resource.Id)).ReturnsAsync(resource);
+            _mockReservationRepository.Setup(repo => repo.AnyAsync(It.IsAny<Expression<Func<Reservation, bool>>>())).ReturnsAsync(true);
+
+            // Act
+            var exception = await Assert.ThrowsAsync<DomainException>(() => _resourceService.DeleteResourceAsync(resource.Id));
+
+            // Assert
+            Assert.Equal("This item cannot be modified.", exception.Message);
         }
     }
 }

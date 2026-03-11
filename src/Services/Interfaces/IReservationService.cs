@@ -13,6 +13,11 @@ namespace BookingSystem.Services.Interfaces
         Task<ReservationDto> UpdateNumberOfPeopleAsync(Guid reservationId, int newNumberOfPeople, string userId);
         Task<List<ReservationDto>> GetReservationsAsync(Guid? resourceId, DateTime? startTime, DateTime? endTime, ReservationStatus[] status, string userId);
         Task<ReservationDto> GetReservationByIdAsync(Guid reservationId, string userId);
-        Task DeleteReservationAsync(Guid reservationId, string userIds);
+        Task DeleteReservationAsync(Guid reservationId, string userId);
+        Task<ReservationDto> CreateAdminReservationAsync(CreateAdminReservationDto dto);
+        Task<ReservationDto> UpdateAdminReservationAsync(UpdateAdminReservationDto dto, Guid ReservationId);
+        Task<List<ReservationDto>> GetAdminReservationsAsync(Guid? resourceId, DateTime? startTime, DateTime? endTime, ReservationStatus[] status, string? userId);
+        Task<ReservationDto> GetAdminReservationByIdAsync(Guid reservationId);
+        Task DeleteAdminReservationByIdAsync(Guid reservationId);
     }
 }
