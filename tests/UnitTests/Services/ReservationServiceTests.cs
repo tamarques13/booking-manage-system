@@ -1,9 +1,9 @@
 using Moq;
-using BookingSystem.Repositories.Interfaces;
-using BookingSystem.Services;
-using BookingSystem.Models;
-using BookingSystem.Jobs.Interface;
-using BookingSystem.ExceptionHelper;
+using BookingSystem.Infrastructure.Persistence.Repositories.Interfaces;
+using BookingSystem.Application.Services;
+using BookingSystem.Domain.Models;
+using BookingSystem.Application.Jobs.Interface;
+using BookingSystem.Domain.Exceptions;
 using BookingSystem.UnitTests.Helpers;
 
 namespace BookingSystem.UnitTests.Services

@@ -1,0 +1,63 @@
+using BookingSystem.Application.DTOs;
+using BookingSystem.Domain.Models;
+
+namespace BookingSystem.Application.Mappers
+{
+    public static class ModelsDtoMapper
+    {
+        public static ReservationDto ToReservationDto(this Reservation reservation, Resource resource, User user)
+        {
+            return new ReservationDto
+            {
+                Id = reservation.Id,
+                StartDate = reservation.StartDate,
+                EndDate = reservation.EndDate,
+                NumberOfPeople = reservation.NumberOfPeople,
+                Status = reservation.Status.ToString(),
+                CreatedAt = reservation.CreatedAt,
+                Resource = new ReservationResourceDto
+                {
+                    ResourceId = resource.Id,
+                    Name = resource.Name,
+                    Type = resource.Type.ToString(),
+                    OpeningTime = resource.OpeningTime,
+                    ClosingTime = resource.ClosingTime,
+                    Weekends = resource.Weekends,
+                },
+                User = new UserDto
+                {
+                    Id = user.Id,
+                    Email = user.Email,
+                    Name = $"{user.FirstName} {user.LastName}",
+                    Role = user.Role.ToString(),
+                }
+            };
+        }
+
+        public static ResourceDto ToResourceDto(this Resource resource)
+        {
+            return new ResourceDto
+            {
+                Id = resource.Id,
+                Name = resource.Name,
+                Capacity = resource.Capacity,
+                Type = resource.Type.ToString(),
+                Status = resource.Status.ToString(),
+                OpeningTime = resource.OpeningTime,
+                ClosingTime = resource.ClosingTime,
+                Weekends = resource.Weekends,
+            };
+        }
+
+        public static UserDto ToUserDto(this User user)
+        {
+            return new UserDto
+            {
+                Id = user.Id,
+                Email = user.Email,
+                Name = $"{user.FirstName} {user.LastName}",
+                Role = user.Role.ToString(),
+            };
+        }
+    }
+}

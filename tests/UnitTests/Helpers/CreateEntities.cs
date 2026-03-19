@@ -1,6 +1,6 @@
-using BookingSystem.Models;
-using BookingSystem.DTOs;
-using BookingSystem.Security;
+using BookingSystem.Domain.Models;
+using BookingSystem.Application.DTOs;
+using BookingSystem.Infrastructure.Security;
 
 namespace BookingSystem.UnitTests.Helpers
 {
