@@ -1,9 +1,9 @@
 using Moq;
 using Xunit;
-using BookingSystem.Repositories.Interfaces;
-using BookingSystem.Services;
+using BookingSystem.Infrastructure.Persistence.Repositories.Interfaces;
+using BookingSystem.Application.Services;
 using BookingSystem.UnitTests.Helpers;
-using BookingSystem.Models;
+using BookingSystem.Domain.Models;
 
 namespace BookingSystem.UnitTests.Services
 {

@@ -1,5 +1,5 @@
-using BookingSystem.Models;
-using BookingSystem.ExceptionHelper;
+using BookingSystem.Domain.Models;
+using BookingSystem.Domain.Exceptions;
 using BookingSystem.UnitTests.Helpers;
 
 namespace BookingSystem.UnitTests.Models
