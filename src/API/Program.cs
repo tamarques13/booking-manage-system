@@ -20,6 +20,7 @@ using BookingSystem.Application.Services;
 using BookingSystem.Application.Services.Auth;
 using BookingSystem.Application.Services.Auth.Tokens;
 using BookingSystem.Application.Services.Reservations;
+using BookingSystem.Application.Services.Reservations.Capacity;
 
 using BookingSystem.Application.Jobs.Interface;
 using BookingSystem.Application.Jobs;
@@ -40,6 +41,8 @@ builder.Services.AddCors(options => options.AddPolicy("AllowAll", builder => bui
 builder.Services.AddScoped<IResourceRepository, ResourceRepository>();
 builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
 builder.Services.AddScoped<IAdminReservationRepository, AdminReservationRepository>();
+builder.Services.AddScoped<IReservationCapacity, ReservationCapacity>();
+
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();

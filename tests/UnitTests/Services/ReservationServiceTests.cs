@@ -1,7 +1,9 @@
 using Moq;
 using BookingSystem.Infrastructure.Persistence.Repositories.Interfaces;
 using BookingSystem.Infrastructure.Persistence.Repositories.Reservations.Interfaces;
+using BookingSystem.Application.Services.Reservations.Interfaces;
 using BookingSystem.Application.Services.Reservations;
+using BookingSystem.Application.Services.Reservations.Capacity;
 using BookingSystem.Domain.Models;
 using BookingSystem.Application.Jobs.Interface;
 using BookingSystem.Domain.Exceptions;
@@ -12,6 +14,7 @@ namespace BookingSystem.UnitTests.Services
     public class ReservationServiceTests
     {
         private readonly Mock<IReservationRepository> _mockReservationRepository;
+        private readonly Mock<IReservationCapacity> _mockReservationCapacity;
         private readonly Mock<IResourceRepository> _mockResourceRepository;
         private readonly Mock<IUserRepository> _mockUserRepository;
         private readonly Mock<IJobScheduler> _mockJobScheduler;
@@ -20,10 +23,11 @@ namespace BookingSystem.UnitTests.Services
         public ReservationServiceTests()
         {
             _mockReservationRepository = new Mock<IReservationRepository>();
+            _mockReservationCapacity = new Mock<IReservationCapacity>();
             _mockResourceRepository = new Mock<IResourceRepository>();
             _mockUserRepository = new Mock<IUserRepository>();
             _mockJobScheduler = new Mock<IJobScheduler>();
-            _reservationService = new ReservationService(_mockReservationRepository.Object, _mockResourceRepository.Object, _mockUserRepository.Object, _mockJobScheduler.Object);
+            _reservationService = new ReservationService(_mockReservationRepository.Object, _mockReservationCapacity.Object, _mockResourceRepository.Object, _mockUserRepository.Object, _mockJobScheduler.Object);
         }
 
         [Fact]
@@ -93,8 +97,12 @@ namespace BookingSystem.UnitTests.Services
 
             _mockResourceRepository.Setup(repo => repo.GetByIdAsync(resource.Id)).ReturnsAsync(resource);
             _mockUserRepository.Setup(repo => repo.GetByIdAsync(user.Id)).ReturnsAsync(user);
-
             _mockReservationRepository.Setup(repo => repo.GetAllAsync(resource.Id, reservationDto.StartDate, reservationDto.EndDate, new[] { ReservationStatus.Confirmed, ReservationStatus.Pending }, user.Id)).ReturnsAsync(new List<Reservation>());
+            _mockReservationCapacity.Setup(capacity => capacity.ValidateCapacityNotExceeded(
+                It.IsAny<Reservation>(),
+                It.IsAny<Resource>(),
+                It.IsAny<string>()))
+                .ThrowsAsync(new DomainException($"{resource.Name} has reached capacity limit."));
 
             // Assert & Act
             var exception = await Assert.ThrowsAsync<DomainException>(() => _reservationService.CreateReservationAsync(reservationDto, user.Id.ToString()));

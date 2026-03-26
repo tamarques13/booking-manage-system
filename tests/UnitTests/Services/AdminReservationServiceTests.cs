@@ -2,6 +2,7 @@ using Xunit;
 using Moq;
 using BookingSystem.Infrastructure.Persistence.Repositories.Reservations.Interfaces;
 using BookingSystem.Infrastructure.Persistence.Repositories.Interfaces;
+using BookingSystem.Application.Services.Reservations.Interfaces;
 using BookingSystem.Application.Services.Reservations;
 using BookingSystem.Application.Jobs.Interface;
 using BookingSystem.UnitTests.Helpers;
@@ -13,6 +14,7 @@ namespace BookingSystem.UnitTests.Services
     {
         private readonly Mock<IReservationRepository> _mockReservationRepository;
         private readonly Mock<IAdminReservationRepository> _mockAdminReservationRepository;
+        private readonly Mock<IReservationCapacity> _mockReservationCapacity;
         private readonly Mock<IResourceRepository> _mockResourceRepository;
         private readonly Mock<IUserRepository> _mockUserRepository;
         private readonly Mock<IJobScheduler> _mockJobScheduler;
@@ -23,11 +25,12 @@ namespace BookingSystem.UnitTests.Services
         {
             _mockReservationRepository = new Mock<IReservationRepository>();
             _mockAdminReservationRepository = new Mock<IAdminReservationRepository>();
+            _mockReservationCapacity = new Mock<IReservationCapacity>();
             _mockResourceRepository = new Mock<IResourceRepository>();
             _mockUserRepository = new Mock<IUserRepository>();
             _mockJobScheduler = new Mock<IJobScheduler>();
-            _reservationService = new ReservationService(_mockReservationRepository.Object, _mockResourceRepository.Object, _mockUserRepository.Object, _mockJobScheduler.Object);
-            _adminReservationService = new AdminReservationService(_mockReservationRepository.Object, _mockAdminReservationRepository.Object, _mockResourceRepository.Object, _mockUserRepository.Object);
+            _reservationService = new ReservationService(_mockReservationRepository.Object, _mockReservationCapacity.Object, _mockResourceRepository.Object, _mockUserRepository.Object, _mockJobScheduler.Object);
+            _adminReservationService = new AdminReservationService(_mockReservationRepository.Object, _mockAdminReservationRepository.Object, _mockReservationCapacity.Object, _mockResourceRepository.Object, _mockUserRepository.Object);
         }
 
         [Fact]
