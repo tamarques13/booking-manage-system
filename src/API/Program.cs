@@ -8,14 +8,19 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 using BookingSystem.Infrastructure.Persistence.Repositories.Interfaces;
+using BookingSystem.Infrastructure.Persistence.Repositories.Reservations.Interfaces;
 using BookingSystem.Infrastructure.Persistence.Repositories;
+using BookingSystem.Infrastructure.Persistence.Repositories.Reservations;
 using BookingSystem.Infrastructure.Persistence.Configurations;
 
 using BookingSystem.Application.Services.Interfaces;
 using BookingSystem.Application.Services.Auth.Interfaces;
+using BookingSystem.Application.Services.Reservations.Interfaces;
 using BookingSystem.Application.Services;
 using BookingSystem.Application.Services.Auth;
 using BookingSystem.Application.Services.Auth.Tokens;
+using BookingSystem.Application.Services.Reservations;
+
 using BookingSystem.Application.Jobs.Interface;
 using BookingSystem.Application.Jobs;
 
@@ -34,12 +39,14 @@ builder.Services.AddCors(options => options.AddPolicy("AllowAll", builder => bui
 
 builder.Services.AddScoped<IResourceRepository, ResourceRepository>();
 builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
+builder.Services.AddScoped<IAdminReservationRepository, AdminReservationRepository>();
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
 builder.Services.AddScoped<IResourceService, ResourceService>();
 builder.Services.AddScoped<IReservationService, ReservationService>();
+builder.Services.AddScoped<IAdminReservationService, AdminReservationService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAuthToken, AuthToken>();
 builder.Services.AddScoped<IUserService, UserService>();

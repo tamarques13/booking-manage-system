@@ -1,6 +1,7 @@
 using Moq;
 using BookingSystem.Infrastructure.Persistence.Repositories.Interfaces;
-using BookingSystem.Application.Services;
+using BookingSystem.Infrastructure.Persistence.Repositories.Reservations.Interfaces;
+using BookingSystem.Application.Services.Reservations;
 using BookingSystem.Domain.Models;
 using BookingSystem.Application.Jobs.Interface;
 using BookingSystem.Domain.Exceptions;
