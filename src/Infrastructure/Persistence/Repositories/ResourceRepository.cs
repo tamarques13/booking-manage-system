@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using BookingSystem.Domain.Models;
 using BookingSystem.Infrastructure.Persistence.Configurations;
 using BookingSystem.Infrastructure.Persistence.Repositories.Interfaces;
+using BookingSystem.Domain.Models;
 
 namespace BookingSystem.Infrastructure.Persistence.Repositories
 {
