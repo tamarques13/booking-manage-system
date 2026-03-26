@@ -6,4 +6,5 @@ namespace BookingSystem.Domain.Exceptions
     /// </summary>
     /// <param name="message">The error message explaining why the exception was thrown.</param>
     public class DomainException(string message) : Exception(message) { }
+    public class SecurityException(string message) : Exception(message) { }
 }

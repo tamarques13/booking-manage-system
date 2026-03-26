@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using BookingSystem.Application.Services.Interfaces;
+using BookingSystem.API.Controllers.Base;
 
 namespace BookingSystem.API.Controllers.User
 {
@@ -8,7 +9,7 @@ namespace BookingSystem.API.Controllers.User
     [Route("api/v{version:apiVersion}/resources")]
     [Authorize]
     [ApiController]
-    public class ResourceController(IResourceService resourceService) : ControllerBase
+    public class ResourceController(IResourceService resourceService) : BaseController
     {
         private readonly IResourceService _resourceService = resourceService;
 
