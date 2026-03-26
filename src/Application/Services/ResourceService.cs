@@ -1,6 +1,7 @@
 using BookingSystem.Domain.Models;
 using BookingSystem.Application.Services.Interfaces;
 using BookingSystem.Infrastructure.Persistence.Repositories.Interfaces;
+using BookingSystem.Infrastructure.Persistence.Repositories.Reservations.Interfaces;
 using BookingSystem.Application.DTOs;
 using BookingSystem.Application.Mappers;
 using BookingSystem.Domain.Exceptions;

@@ -1,5 +1,6 @@
 using Moq;
 using BookingSystem.Application.Services;
+using BookingSystem.Infrastructure.Persistence.Repositories.Reservations.Interfaces;
 using BookingSystem.Infrastructure.Persistence.Repositories.Interfaces;
 using BookingSystem.Domain.Models;
 using BookingSystem.UnitTests.Helpers;

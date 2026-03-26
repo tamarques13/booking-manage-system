@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using BookingSystem.Application.Services.Interfaces;
+using BookingSystem.Application.Services.Reservations.Interfaces;
 using BookingSystem.Domain.Models;
 using BookingSystem.Application.DTOs;
 
@@ -10,9 +10,9 @@ namespace BookingSystem.API.Controllers.Admin
     [Route("api/v{version:apiVersion}/admin/reservations")]
     [Authorize(Roles = "Admin")]
     [ApiController]
-    public class AdminReservationController(IReservationService reservationService) : ControllerBase
+    public class AdminReservationController(IAdminReservationService reservationService) : ControllerBase
     {
-        private readonly IReservationService _reservationService = reservationService;
+        private readonly IAdminReservationService _reservationService = reservationService;
 
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -22,7 +22,7 @@ namespace BookingSystem.API.Controllers.Admin
         [HttpPost]
         public async Task<IActionResult> CreateAdminReservation(CreateAdminReservationDto dto)
         {
-            var reservationDto = await _reservationService.CreateAdminReservationAsync(dto);
+            var reservationDto = await _reservationService.CreateReservationAsync(dto);
             return CreatedAtAction(nameof(GetAdminReservationsById), new { id = reservationDto.Id }, reservationDto);
         }
 
@@ -35,7 +35,7 @@ namespace BookingSystem.API.Controllers.Admin
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateAdminReservation(UpdateAdminReservationDto dto, Guid id)
         {
-            var reservationDto = await _reservationService.UpdateAdminReservationAsync(dto, id);
+            var reservationDto = await _reservationService.UpdateReservationAsync(dto, id);
             return Ok(reservationDto);
         }
 
@@ -47,7 +47,7 @@ namespace BookingSystem.API.Controllers.Admin
         [HttpGet]
         public async Task<IActionResult> GetAdminReservations(string? userId, Guid? ResourceId, DateTime? StartTime, DateTime? EndTime, [FromQuery] ReservationStatus[] status)
         {
-            var reservationsDto = await _reservationService.GetAdminReservationsAsync(ResourceId, StartTime, EndTime, status, userId);
+            var reservationsDto = await _reservationService.GetReservationsAsync(ResourceId, StartTime, EndTime, status, userId);
             return Ok(reservationsDto);
         }
 
@@ -59,7 +59,7 @@ namespace BookingSystem.API.Controllers.Admin
         [HttpGet("{id}")]
         public async Task<IActionResult> GetAdminReservationsById(Guid id)
         {
-            var reservationDto = await _reservationService.GetAdminReservationByIdAsync(id);
+            var reservationDto = await _reservationService.GetReservationByIdAsync(id);
             return Ok(reservationDto);
         }
 
@@ -71,7 +71,7 @@ namespace BookingSystem.API.Controllers.Admin
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAdminReservationsById(Guid id)
         {
-            await _reservationService.DeleteAdminReservationByIdAsync(id);
+            await _reservationService.DeleteReservationByIdAsync(id);
             return NoContent();
         }
     }

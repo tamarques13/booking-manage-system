@@ -1,7 +1,7 @@
 using BookingSystem.Domain.Models;
 using BookingSystem.Application.DTOs;
 
-namespace BookingSystem.Application.Services.Interfaces
+namespace BookingSystem.Application.Services.Reservations.Interfaces
 {
     public interface IReservationService
     {
@@ -14,10 +14,5 @@ namespace BookingSystem.Application.Services.Interfaces
         Task<List<ReservationDto>> GetReservationsAsync(Guid? resourceId, DateTime? startTime, DateTime? endTime, ReservationStatus[] status, string userId);
         Task<ReservationDto> GetReservationByIdAsync(Guid reservationId, string userId);
         Task DeleteReservationAsync(Guid reservationId, string userId);
-        Task<ReservationDto> CreateAdminReservationAsync(CreateAdminReservationDto dto);
-        Task<ReservationDto> UpdateAdminReservationAsync(UpdateAdminReservationDto dto, Guid ReservationId);
-        Task<List<ReservationDto>> GetAdminReservationsAsync(Guid? resourceId, DateTime? startTime, DateTime? endTime, ReservationStatus[] status, string? userId);
-        Task<ReservationDto> GetAdminReservationByIdAsync(Guid reservationId);
-        Task DeleteAdminReservationByIdAsync(Guid reservationId);
     }
 }
