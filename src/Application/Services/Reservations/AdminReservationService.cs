@@ -16,12 +16,14 @@ namespace BookingSystem.Application.Services.Reservations
     public class AdminReservationService(
         IReservationRepository reservationRepository,
         IAdminReservationRepository adminReservationRepository,
+        IReservationCapacity reservationCapacity,
         IResourceRepository resourceRepository,
         IUserRepository userRepository) : IAdminReservationService
     {
 
         private readonly IReservationRepository _reservationRepository = reservationRepository;
         private readonly IAdminReservationRepository _adminReservationRepository = adminReservationRepository;
+        private readonly IReservationCapacity _reservationCapacity = reservationCapacity; 
         private readonly IResourceRepository _resourceRepository = resourceRepository;
         private readonly IUserRepository _userRepository = userRepository;
 
@@ -39,7 +41,7 @@ namespace BookingSystem.Application.Services.Reservations
 
             reservation.ValidateReservation(resource);
 
-            await ValidateCapacityNotExceeded(reservation, resource, dto.UserId.ToString());
+            await _reservationCapacity.ValidateCapacityNotExceeded(reservation, resource, dto.UserId.ToString());
 
             reservation.ConfirmReservation();
 
@@ -64,7 +66,7 @@ namespace BookingSystem.Application.Services.Reservations
 
             reservation.Update(dto.Status, dto.StartDate, dto.EndDate, dto.NumberOfPeople, dto.ResourceId, dto.UserId);
 
-            await ValidateCapacityNotExceeded(reservation, resource, dto.UserId.ToString());
+            await _reservationCapacity.ValidateCapacityNotExceeded(reservation, resource, dto.UserId.ToString());
             await _reservationRepository.UpdateAsync(reservation);
 
             return reservation.ToReservationDto(resource, user);
@@ -132,38 +134,6 @@ namespace BookingSystem.Application.Services.Reservations
             var reservation = await _adminReservationRepository.GetByIdAsync(reservationId);
 
             await _reservationRepository.DeleteAsync(reservation);
-        }
-
-        /// <summary>
-        /// Validates that the number of people does not exceed the resource's capacity.
-        /// </summary>
-        /// <param name="reservation">The reservation to validate.</param>
-        /// <param name="resource">The resource being reserved.</param>
-        /// 
-        /// <exception cref="DomainException">If capacity would be exceeded.</exception>
-
-        private async Task ValidateCapacityNotExceeded(Reservation reservation, Resource resource, string userId)
-        {
-            int current = 0;
-            int max = 0;
-
-            var Reservations = await _reservationRepository.GetAllAsync(resource.Id, reservation.StartDate, reservation.EndDate, new[] { ReservationStatus.Confirmed, ReservationStatus.Pending }, Guid.Parse(userId));
-            var allReservations = Reservations.Append(reservation);
-
-            var events = allReservations.SelectMany(r => new[]
-            {
-                (time: r.StartDate, delta: r.NumberOfPeople),
-                (time: r.EndDate, delta: -r.NumberOfPeople)
-            })
-            .OrderBy(e => e.time).ThenBy(e => e.delta);
-
-            foreach (var e in events)
-            {
-                current += e.delta;
-                max = Math.Max(max, current);
-            }
-
-            if (max > resource.Capacity) throw new DomainException(resource.Name + " has reached capacity limit.");
         }
     }
 }
