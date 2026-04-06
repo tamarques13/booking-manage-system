@@ -1,21 +1,28 @@
-using BookingSystem.Domain.Models;
-using BookingSystem.Application.DTOs;
+using BookingSystem.Infrastructure.Persistence.Repositories.Reservations.Interfaces;
 using BookingSystem.Infrastructure.Persistence.Repositories.Interfaces;
-using BookingSystem.Application.Services.Interfaces;
+using BookingSystem.Application.Services.Reservations.Interfaces;
 using BookingSystem.Application.Jobs.Interface;
 using BookingSystem.Application.Mappers;
+using BookingSystem.Application.DTOs;
 using BookingSystem.Domain.Exceptions;
+using BookingSystem.Domain.Models;
 
-namespace BookingSystem.Application.Services
+namespace BookingSystem.Application.Services.Reservations
 {
     /// <summary>
     /// Application service responsible for managing Reservation lifecycle.
     /// Coordinates repository access and delegates business rules to the domain model.
     /// </summary>
 
-    public class ReservationService(IReservationRepository reservationRepository, IResourceRepository resourceRepository, IUserRepository userRepository, IJobScheduler jobScheduler) : IReservationService
+    public class ReservationService(
+        IReservationRepository reservationRepository, 
+        IReservationCapacity reservationCapacity, 
+        IResourceRepository resourceRepository,
+        IUserRepository userRepository, 
+        IJobScheduler jobScheduler) : IReservationService
     {
         private readonly IReservationRepository _reservationRepository = reservationRepository;
+        private readonly IReservationCapacity _reservationCapacity = reservationCapacity;
         private readonly IResourceRepository _resourceRepository = resourceRepository;
         private readonly IUserRepository _userRepository = userRepository;
         private readonly IJobScheduler _jobScheduler = jobScheduler;
@@ -43,7 +50,7 @@ namespace BookingSystem.Application.Services
 
             reservation.ValidateReservation(resource);
 
-            await ValidateCapacityNotExceeded(reservation, resource, userId);
+            await _reservationCapacity.ValidateCapacityNotExceeded(reservation, resource, userId);
 
             await _reservationRepository.AddAsync(reservation);
 
@@ -116,7 +123,7 @@ namespace BookingSystem.Application.Services
             reservation.UpdateResource(resourceId);
             reservation.ValidateReservation(resource);
 
-            await ValidateCapacityNotExceeded(reservation, resource, userId);
+            await _reservationCapacity.ValidateCapacityNotExceeded(reservation, resource, userId);
 
             await _reservationRepository.UpdateAsync(reservation);
 
@@ -143,7 +150,7 @@ namespace BookingSystem.Application.Services
             reservation.UpdateDateReservation(newStartDate, newEndDate);
             reservation.ValidateReservation(resource);
 
-            await ValidateCapacityNotExceeded(reservation, resource, userId);
+            await _reservationCapacity.ValidateCapacityNotExceeded(reservation, resource, userId);
 
             await _reservationRepository.UpdateAsync(reservation);
 
@@ -168,7 +175,7 @@ namespace BookingSystem.Application.Services
 
             reservation.UpdateNumberOfPeople(newNumberOfPeople);
 
-            await ValidateCapacityNotExceeded(reservation, resource, userId);
+            await _reservationCapacity.ValidateCapacityNotExceeded(reservation, resource, userId);
             await _reservationRepository.UpdateAsync(reservation);
 
             return reservation.ToReservationDto(resource, user);
@@ -238,147 +245,6 @@ namespace BookingSystem.Application.Services
             var reservation = await _reservationRepository.GetByIdAsync(reservationId, Guid.Parse(userId));
 
             await _reservationRepository.DeleteAsync(reservation);
-        }
-
-        /// <summary>
-        /// Creates a new reservation on behalf of an admin user.
-        /// </summary>
-        /// <param name="dto">The data transfer object containing reservation details.</param>
-        /// <exception cref="ArgumentException">Thrown if reservation validation fails.</exception>
-
-        public async Task<ReservationDto> CreateAdminReservationAsync(CreateAdminReservationDto dto)
-        {
-            var reservation = new Reservation(dto.StartDate, dto.EndDate, dto.NumberOfPeople, dto.ResourceId, dto.UserId);
-            var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
-            var user = await _userRepository.GetByIdAsync(dto.UserId);
-
-            reservation.ValidateReservation(resource);
-
-            await ValidateCapacityNotExceeded(reservation, resource, dto.UserId.ToString());
-
-            reservation.ConfirmReservation();
-
-            await _reservationRepository.AddAsync(reservation);
-
-            return reservation.ToReservationDto(resource, user);
-        }
-
-        /// <summary>
-        /// Updates an existing reservation as an admin user.
-        /// </summary>
-        /// <param name="dto">The data transfer object containing updated reservation details.</param>
-        /// <param name="reservationId">The ID of the reservation to update.</param>
-        /// <exception cref="KeyNotFoundException">Thrown when the reservation does not exist.</exception>
-        /// <exception cref="ArgumentException">Thrown if reservation validation fails.</exception>
-
-        public async Task<ReservationDto> UpdateAdminReservationAsync(UpdateAdminReservationDto dto, Guid reservationId)
-        {
-            var reservation = await _reservationRepository.GetAdminByIdAsync(reservationId);
-            var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
-            var user = await _userRepository.GetByIdAsync(dto.UserId);
-
-            reservation.Update(dto.Status, dto.StartDate, dto.EndDate, dto.NumberOfPeople, dto.ResourceId, dto.UserId);
-
-            await ValidateCapacityNotExceeded(reservation, resource, dto.UserId.ToString());
-            await _reservationRepository.UpdateAsync(reservation);
-
-            return reservation.ToReservationDto(resource, user);
-        }
-
-        /// <summary>
-        /// Retrieves a list of reservations based on admin level filters.
-        /// </summary>
-        /// <param name="resourceId">Optional resource ID to filter reservations.</param>
-        /// <param name="startTime">Optional start time to filter reservations.</param>
-        /// <param name="endTime">Optional end time to filter reservations.</param>
-        /// <param name="status">Optional array of reservation statuses to filter.</param>
-        /// <param name="userId">Optional user ID to filter reservations.</param>
-
-        public async Task<List<ReservationDto>> GetAdminReservationsAsync(Guid? resourceId, DateTime? startTime, DateTime? endTime, ReservationStatus[]? status, string? userId)
-        {
-            Guid? id = userId != null ? Guid.Parse(userId) : null;
-
-            var reservations = await _reservationRepository.GetAdminAllAsync(resourceId, startTime, endTime, status, id);
-
-            var resourceIds = reservations.Select(r => r.ResourceId).Distinct().ToList();
-            var userIds = reservations.Select(r => r.UserId).Distinct().ToList();
-
-            var resources = await _resourceRepository.GetByIdsAsync(resourceIds);
-            var users = await _userRepository.GetByIdsAsync(userIds);
-
-            var resourceDictionary = resources.ToDictionary(r => r.Id);
-            var userDictionary = users.ToDictionary(u => u.Id);
-
-            var reservationDtos = new List<ReservationDto>();
-
-            foreach (var reservation in reservations)
-            {
-                var resource = resourceDictionary[reservation.ResourceId];
-                var user = userDictionary[reservation.UserId];
-
-                reservationDtos.Add(reservation.ToReservationDto(resource, user));
-            }
-
-            return reservationDtos;
-        }
-
-        /// <summary>
-        /// Retrieves a single reservation by its ID with full details.
-        /// </summary>
-        /// <param name="reservationId">The ID of the reservation to retrieve.</param>
-        /// <exception cref="KeyNotFoundException">Thrown when the reservation does not exist.</exception>
-
-        public async Task<ReservationDto> GetAdminReservationByIdAsync(Guid reservationId)
-        {
-            var reservation = await _reservationRepository.GetAdminByIdAsync(reservationId);
-            var resource = await _resourceRepository.GetByIdAsync(reservation.ResourceId);
-            var user = await _userRepository.GetByIdAsync(reservation.UserId);
-
-            return reservation.ToReservationDto(resource, user);
-        }
-
-        /// <summary>
-        /// Permanently deletes a reservation by its ID at the admin level. Should not be used if historical booking data must be preserved.
-        /// </summary>
-        /// <param name="reservationId">The ID of the reservation to delete.</param>
-        /// <exception cref="KeyNotFoundException">Thrown when the reservation does not exist.</exception>
-        public async Task DeleteAdminReservationByIdAsync(Guid reservationId)
-        {
-            var reservation = await _reservationRepository.GetAdminByIdAsync(reservationId);
-
-            await _reservationRepository.DeleteAsync(reservation);
-        }
-
-        /// <summary>
-        /// Validates that the number of people does not exceed the resource's capacity.
-        /// </summary>
-        /// <param name="reservation">The reservation to validate.</param>
-        /// <param name="resource">The resource being reserved.</param>
-        /// 
-        /// <exception cref="DomainException">If capacity would be exceeded.</exception>
-
-        private async Task ValidateCapacityNotExceeded(Reservation reservation, Resource resource, string userId)
-        {
-            int current = 0;
-            int max = 0;
-
-            var Reservations = await _reservationRepository.GetAllAsync(resource.Id, reservation.StartDate, reservation.EndDate, new[] { ReservationStatus.Confirmed, ReservationStatus.Pending }, Guid.Parse(userId));
-            var allReservations = Reservations.Append(reservation);
-
-            var events = allReservations.SelectMany(r => new[]
-            {
-                (time: r.StartDate, delta: r.NumberOfPeople),
-                (time: r.EndDate, delta: -r.NumberOfPeople)
-            })
-            .OrderBy(e => e.time).ThenBy(e => e.delta);
-
-            foreach (var e in events)
-            {
-                current += e.delta;
-                max = Math.Max(max, current);
-            }
-
-            if (max > resource.Capacity) throw new DomainException(resource.Name + " has reached capacity limit.");
         }
     }
 }

@@ -1,7 +1,7 @@
 using BookingSystem.Domain.Models;
 using System.Linq.Expressions;
 
-namespace BookingSystem.Infrastructure.Persistence.Repositories.Interfaces
+namespace BookingSystem.Infrastructure.Persistence.Repositories.Reservations.Interfaces
 {
     public interface IReservationRepository
     {
@@ -11,7 +11,5 @@ namespace BookingSystem.Infrastructure.Persistence.Repositories.Interfaces
         Task<List<Reservation>> GetAllAsync(Guid? resourceId, DateTime? startTime, DateTime? endTime, ReservationStatus[] status, Guid userId);
         Task<bool> AnyAsync(Expression<Func<Reservation, bool>> predicate);
         Task DeleteAsync(Reservation reservation);
-        Task<List<Reservation>> GetAdminAllAsync(Guid? resourceId, DateTime? startTime, DateTime? endTime, ReservationStatus[]? status, Guid? userId);
-        Task<Reservation> GetAdminByIdAsync(Guid reservationId);
     }
 }

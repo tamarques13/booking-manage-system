@@ -17,6 +17,7 @@ namespace BookingSystem.API.Middleware
 
                 var statusCode = ex switch
                 {
+                    SecurityException => StatusCodes.Status403Forbidden,
                     DomainException => StatusCodes.Status400BadRequest,
                     ArgumentException => StatusCodes.Status400BadRequest,
                     UnauthorizedAccessException => StatusCodes.Status401Unauthorized,

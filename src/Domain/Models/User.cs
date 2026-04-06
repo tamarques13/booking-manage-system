@@ -13,6 +13,7 @@ namespace BookingSystem.Domain.Models
         public string LastName { get; set; } = string.Empty;
         public UserRoles Role { get; set; }
         public ICollection<Reservation> Reservations { get; set; } = [];
+        public ICollection<RefreshToken> RefreshTokens { get; set; } = [];
 
         public User(string email, string passwordHash, string firstName, string lastName, UserRoles role)
         {

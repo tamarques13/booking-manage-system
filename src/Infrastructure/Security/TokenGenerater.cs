@@ -32,8 +32,6 @@ namespace BookingSystem.Infrastructure.Security
             var claims = new List<Claim>
             {
                 new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                new("name", $"{user.FirstName} {user.LastName}"),
-                new(JwtRegisteredClaimNames.Email, user.Email),
                 new(ClaimTypes.Role, user.Role.ToString()),
                 new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };

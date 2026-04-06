@@ -1,5 +1,5 @@
 using BookingSystem.Application.Jobs.Interface;
-using BookingSystem.Infrastructure.Persistence.Repositories.Interfaces;
+using BookingSystem.Infrastructure.Persistence.Repositories.Reservations.Interfaces;
 using BookingSystem.Domain.Models;
 using Hangfire;
 
