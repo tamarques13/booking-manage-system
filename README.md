@@ -153,17 +153,11 @@ Swagger is integrated into the project:
   - Tokens are validated for expiration and reuse detection.
   - Token rotation is implemented to enhance security.
 - **Reservation Capacity**:
+  - Temporary holds reservations until confirmation, preventing overbooking.
   - Validates that the number of people in reservations does not exceed the resource's capacity.
   - Throws an exception if the capacity is exceeded.
 - **Hangfire Jobs**:
-  - Used for scheduling reservation expiration tasks.
-  - Jobs are scheduled to expire reservations after a set time.
-
-## Visuals
-
-- **ERD**:
-  - A diagram showing the relationships between `Users`, `Reservations`, `Resources`, and `RefreshTokens` can be added.- **Swagger UI**:
-  - A screenshot of the Swagger UI can be included to showcase the API documentation.
+  - Jobs are scheduled to expire reservations after a set time that have not been confirmed.
 
 ## Contributing Guidelines
 
