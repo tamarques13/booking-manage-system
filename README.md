@@ -7,24 +7,27 @@ A backend booking management API built with ASP.NET Core, featuring JWT authenti
 
 ## Features
 - **JWT Authentication**: Secure user authentication and authorization.
+- **Refresh Tokens**: Extend user sessions securely with refresh token support.
 - **Hangfire Integration**: Background job processing for tasks like expiring reservations.
 - **SQL Server Support**: Robust database integration for managing reservations, resources and users.
+- **Reservation Capacity Management**: Logic to handle reservation limits and availability.
+- **Security Utilities**: Includes password hashing and token generation utilities.
 - **Modular Architecture**: Organized into controllers, services, repositories and DTOs for maintainability.
 
 ## Folder Structure
 This project follows a layered architecture approach, separating responsibilities into:
 
-- **Controllers/**: Handles API endpoints (e.g., `AuthController`, `ReservationController`, `ResourceController`).
-- **Data/**: Contains the `AppDbContext` for database interactions.
-- **DTOs/**: Data Transfer Objects for API requests and responses.
-- **Helpers/**: Utility classes like `ExceptionHelper` and `ModelsDtoMapper`.
-- **Jobs/**: Background jobs managed by Hangfire.
-- **Middleware/**: Custom middleware like `ErrorHandlingMiddleware`.
-- **Migrations/**: Entity Framework migrations for database schema.
-- **Models/**: Entity models like `Reservation`, `Resource` and `User`.
-- **Repositories/**: Data access layer with interfaces and implementations.
-- **Security/**: Security utilities like `PasswordHasher` and `TokenGenerater`.
-- **Services/**: Business logic layer with interfaces and implementations.
+- **Infrastructure/Persistence/**: Contains the `AppDbContext` for database interactions.
+- **Infrastructure/Security/**: Security utilities like `PasswordHasher` and `TokenGenerater`.
+- **Infrastructure/Migrations/**: Entity Framework migrations for database schema.
+- **Application/DTOs/**: Data Transfer Objects for API requests and responses.
+- **Application/Services/**: Business logic layer with interfaces and implementations, including `AuthService`, `ReservationService`, and `AdminReservationService`.
+- **Application/Services/Auth/Tokens/**: Handles token related logic, such as `AuthToken`.
+- **Application/Services/Reservations/Capacity/**: Manages reservation capacity logic.
+- **Application/Jobs/**: Background jobs managed by Hangfire.
+- **Domain/Models/**: Entity models like `Reservation`, `Resource`, `User`, and `RefreshToken`.
+- **API/Middleware/**: Custom middleware like `ErrorHandlingMiddleware`.
+- **API/Controllers/**: Handles API endpoints (e.g., `AuthController`, `ReservationController`, `ResourceController`).
 
 ## Setup Instructions
 
@@ -116,3 +119,59 @@ The output will be a random base64 string (64 characters).
 
 ## License
 This project is licensed under the MIT License. See the LICENSE file for details.
+
+## Database Schema
+The database schema includes the following entities:
+
+- **Users**:
+  - Fields: `Id`, `Email`, `Password`, `FirstName`, `LastName`, `Role`.
+  - Relationships: One-to-Many with `Reservations` and `RefreshTokens`.
+- **Reservations**:
+  - Fields: `Id`, `StartDate`, `EndDate`, `NumberOfPeople`, `Status`, `ResourceId`, `UserId`.
+  - Relationships: Many-to-One with `Users` and `Resources`.
+- **Resources**:
+  - Fields: `Id`, `Name`, `Capacity`, `OpeningTime`, `ClosingTime`, `Type`, `Status`, `Weekends`.
+  - Relationships: One-to-Many with `Reservations`.
+- **RefreshTokens**:
+  - Fields: `Id`, `UserId`, `Token`, `ExpireDate`, `CreatedAt`, `RevokedAt`, `ReplacedByToken`, `IsRevoked`, `IpAddress`.
+  - Relationships: Many-to-One with `Users`.
+
+## API Documentation (Swagger)
+Swagger is integrated into the project:
+
+- **Setup**:
+  - Swagger is configured in `Program.cs` with security definitions for JWT.
+  - Swagger UI is accessible at `/swagger` in development mode.
+- **Usage**:
+  - Provides API documentation for all endpoints.
+  - Includes JWT authentication details for secured endpoints.
+
+## Advanced Features
+
+- **Refresh Tokens**:
+  - Tokens are generated during login and stored in the database.
+  - Tokens are validated for expiration and reuse detection.
+  - Token rotation is implemented to enhance security.
+- **Reservation Capacity**:
+  - Validates that the number of people in reservations does not exceed the resource's capacity.
+  - Throws an exception if the capacity is exceeded.
+- **Hangfire Jobs**:
+  - Used for scheduling reservation expiration tasks.
+  - Jobs are scheduled to expire reservations after a set time.
+
+## Visuals
+
+- **ERD**:
+  - A diagram showing the relationships between `Users`, `Reservations`, `Resources`, and `RefreshTokens` can be added.- **Swagger UI**:
+  - A screenshot of the Swagger UI can be included to showcase the API documentation.
+
+## Contributing Guidelines
+
+- **Code Style**:
+  - Follow C# conventions and use meaningful variable names.
+- **Pull Requests**:
+  - Create a new branch for each feature or bug fix.
+  - Ensure all tests pass before submitting a pull request.
+- **Testing**:
+  - Write unit tests for new features.
+  - Run `dotnet test` to verify changes.
